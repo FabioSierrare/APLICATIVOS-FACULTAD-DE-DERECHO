@@ -1,3 +1,11 @@
-export default function Home(){
-    return <h1>Hola</h1>
+
+
+export default function HomePage(){
+    return (
+        <div className="font-sans">
+            <h1 className="bg-[#F20000]">
+      Hello world!
+    </h1>
+        </div>
+    )
 }
