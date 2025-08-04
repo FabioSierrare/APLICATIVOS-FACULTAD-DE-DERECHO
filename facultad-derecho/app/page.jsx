@@ -13,11 +13,11 @@ export default function Login() {
 
       <form className="">
         <div className="mb-6">
-          <label for="email" className="block text-[#333333] mb-2">Correo Electrónico</label>
+          <label className="block text-[#333333] mb-2">Usuario</label>
           <input
-            type="email"
-            id="email"
-            placeholder="ejemplo@estudiojuridico.com"
+            type="text"
+            id="usuario"
+            placeholder="1234567890"
             required
             className="focus:outline-none focus:border-[#553285] w-full px-4 py-3 border-[#dddddd] rounded-lg transition-colors duration-300 border hover:border-blue-500"
           />
