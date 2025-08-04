@@ -13,8 +13,7 @@ const open = Open_Sans(
 export default function RootLayout({children}){
     return(
         <html>
-            <body className={open.className}>
-                <NavBar/>
+            <body className="bg-[#f2f2f2]">
                 {children}
             </body>
         </html>
