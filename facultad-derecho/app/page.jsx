@@ -7,7 +7,7 @@ export default function Login() {
           alt="Logo Estudio Jurídico"
           className="mb-6 mx-auto"
         />
-        <h1 className="text-[#553285] text-3xl font-bold mb-2">Acceso al Sistema</h1>
+        <h1 className="text-[#553285] text-3xl font-bold mb-2" >Acceso al Sistema</h1>
         <p className="text-[#666666] font-light">Ingrese sus credenciales para continuar</p>
       </div>
 
