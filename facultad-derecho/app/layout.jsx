@@ -1,4 +1,3 @@
-import NavBar from "@/components/Aside"
 import "./globals.css";
 
 export default function RootLayout({children}){
