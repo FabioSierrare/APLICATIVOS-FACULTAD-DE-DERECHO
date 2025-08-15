@@ -1,7 +1,6 @@
 export async function obtenerCalendarioHabilColombia(anio = new Date().getFullYear(),
   mes = new Date().getMonth() + 1) {
 
-
   const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${anio}/CO`);
   const festivos = await response.json();
 

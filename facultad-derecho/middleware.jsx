@@ -9,34 +9,30 @@ export async function middleware(request) {
   }
 
   try {
-    const secret = new TextEncoder().encode(process.env.NEXT_PUBLIC_JWT_SECRET);
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
     const { payload: decoded } = await jwtVerify(token, secret);
 
-    // Validación de rutas para admin
-    if (request.nextUrl.pathname.startsWith("/admin") && decoded.rol !== "Administrador") {
-      if (decoded.rol === "Estudiante") {
+    // Debug logs
+    const role = decoded.Rol;
+
+    // Admin
+    if (request.nextUrl.pathname.startsWith("/admin") && role !== "Administrador") {
+      if (role === "Estudiante") {
         return NextResponse.redirect(new URL("/home", request.url));
-      } else if (decoded.rol === "Profesor") {
+      } else if (role === "Profesor") {
         return NextResponse.redirect(new URL("/", request.url));
       }
     }
 
-    // Validación de rutas para home (estudiantes)
-    if (request.nextUrl.pathname.startsWith("/home") && decoded.rol !== "Estudiante" && decoded.rol !== "Administrador") {
-      if (decoded.rol === "Profesor") {
+    // Home (estudiantes)
+    if (request.nextUrl.pathname.startsWith("/home") && role !== "Estudiante" && role !== "Administrador") {
+      if (role === "Profesor") {
         return NextResponse.redirect(new URL("/", request.url));
       }
     }
 
-    // Validación de rutas para profesores
-    if (request.nextUrl.pathname.startsWith("/") && decoded.rol !== "Profesor" && decoded.rol !== "Administrador") {
-      if (decoded.rol === "Estudiante") {
-        return NextResponse.redirect(new URL("/admin", request.url));
-      }
-    }
-
-  } catch (err) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    } catch (err) {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return NextResponse.next();

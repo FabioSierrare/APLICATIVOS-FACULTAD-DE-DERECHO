@@ -35,7 +35,6 @@ export default function Login() {
       // Guardar token en cookie para que middleware lo lea
       document.cookie = `token=${respuesta.token}; path=/;`;
       const decode = jwtDecode(respuesta.token)
-      console.log(decode.Rol, typeof(decode.Rol))
       // Redirigir según rol
       if (decode.Rol === "Administrador") {
         router.push("/admin");
