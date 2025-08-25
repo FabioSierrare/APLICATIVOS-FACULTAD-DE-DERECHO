@@ -5,6 +5,9 @@ const {heroui} = require("@heroui/theme");
 module.exports = {
   content: [
     "./node_modules/@heroui/theme/dist/components/(calendar|button|ripple|spinner).js",
+    "./pages/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}",
+    "./app/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {},

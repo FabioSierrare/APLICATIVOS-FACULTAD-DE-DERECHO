@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from 'react';
 import { postData } from '@/components/FetchPost';
 import { type } from "os";
+import { useAuth } from "@/components/AuthCont";
 
 export default function Login() {
   const router = useRouter();
@@ -13,6 +14,7 @@ export default function Login() {
   });
 
   const [errorMensaje, setErrorMensaje] = useState(""); // Nuevo estado para mostrar el error
+  const { setUsuario } = useAuth();
 
   const handlerChange = (e) => {
     setFormularioLogin({
@@ -35,11 +37,14 @@ export default function Login() {
       // Guardar token en cookie para que middleware lo lea
       document.cookie = `token=${respuesta.token}; path=/;`;
       const decode = jwtDecode(respuesta.token)
+      localStorage.setItem("token", respuesta.token);
+
+      setUsuario(decode);
       // Redirigir según rol
       if (decode.Rol === "Administrador") {
         router.push("/admin");
-      } else if (decode.Rol === "user") {
-        router.push("/usuario/home");
+      } else if (decode.Rol === "Estudiante") {
+        router.push("/home");
       } else {
         router.push("/");
       }

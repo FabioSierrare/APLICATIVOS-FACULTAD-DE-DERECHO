@@ -16,8 +16,8 @@ export default function HomeLayout({ children }) {
         />
         <ComponentLink
           label="Mis turnos"
-          href="/turnos"
-          isActive={pathname === "/turnos"}
+          href="/home/turnos"
+          isActive={pathname === "/home/turnos"}
         />
       </Aside>
       {children}

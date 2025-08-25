@@ -1,69 +1,28 @@
-"use client"
-import { useState } from 'react';
-import { postData } from '@/components/FetchPost';
+export default function TurnoCard({ fecha, jornada }) {
+  const fechaObj = new Date(fecha);
 
-export default function Usuarios() {
-  const [FormularioLogin, setFormularioLogin] = useState({
-    Correo: '',
-    Contrasena: ''
-  });
-
-  const [errorMensaje, setErrorMensaje] = useState(""); // Nuevo estado para mostrar el error
-
-  const handlerChange = (e) => {
-    setFormularioLogin({
-      ...FormularioLogin,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMensaje(""); // limpiar mensaje antes de enviar
-    try {
-      const respuesta = await postData('/api/Auth/Login', FormularioLogin);
-
-      if (!respuesta.success && respuesta.message) {
-        // Si la API devuelve un error controlado
-        setErrorMensaje(respuesta.message);
-        return;
-      }
-
-      console.log('Token recibido:', respuesta.Token);
-    } catch (error) {
-      setErrorMensaje(error.message); // mostrar error de la API
-    }
-  };
+  const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+  const fechaFormateada = fechaObj.toLocaleDateString('es-ES', opciones);
 
   return (
-    <form onSubmit={handleSubmit} className='flex flex-col w-2xs p-5'>
-        <input 
-          type="email" 
-          className='p-3 bg-white border rounded-2xl mb-4'
-          name='Correo'
-          value={FormularioLogin.Correo}
-          onChange={handlerChange}
-          placeholder='Correo'
-        />
-        <input 
-          type="password" 
-          name='Contrasena'
-          className='p-3 bg-white border rounded-2xl mb-4'
-          value={FormularioLogin.Contrasena}
-          onChange={handlerChange}
-          placeholder='Contraseña'
-        />
-
-        {/* Mensaje de error en el diseño */}
-        {errorMensaje && (
-          <p className="text-red-500 text-sm mb-3">{errorMensaje}</p>
-        )}
-
-        <input 
-          type="submit" 
-          value="Enviar" 
-          className='bg-white p-2 rounded-2xl cursor-pointer'
-        />
-    </form>
+    <div className="bg-white rounded-2xl shadow-md p-6 w-full max-w-md mx-auto my-4 transition hover:shadow-xl border border-gray-200">
+      <h2 className="text-xl font-bold mb-4 text-[#553285] border-b-2 border-[#553285] pb-2">
+        Información del Turno
+      </h2>
+      <div className="space-y-3">
+        <p className="text-gray-700">
+          <span className="font-semibold text-[#333333]">Fecha:</span> {fecha}
+        </p>
+        <p className="text-gray-700">
+          <span className="font-semibold text-[#333333]">Jornada:</span> 
+          <span className="ml-2 px-3 py-1 bg-[#553285] text-white text-sm rounded-full inline-block">
+            {jornada}
+          </span>
+        </p>
+        <p className="text-gray-700">
+          <span className=" text-[#553285] font-medium">{fechaFormateada}</span>
+        </p>
+      </div>
+    </div>
   );
 }
