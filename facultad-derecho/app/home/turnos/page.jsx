@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useUsuarioTurno } from "@/components/UsuarioData";
 export const runtime = "edge"
 
+
 export default function TurnoCard() {
   const { data: Turnos } = useFetchData("/api/Turnos/GetTurnos");
   const [misTurnos, setmisTurnos] = useState([]);
