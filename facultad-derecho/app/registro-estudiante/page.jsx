@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import useFetchData from "@/components/FetchData";
 import { postData } from "@/components/FetchPost";
+export const runtime = "edge"
 
 export default function RegistroFormulario() {
   const [form, setForm] = useState({

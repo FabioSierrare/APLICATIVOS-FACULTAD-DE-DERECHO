@@ -3,6 +3,7 @@ import React from "react";
 import { Eye, Pencil, Trash2, CalendarDays } from "lucide-react";
 import useFetchData from "@/components/FetchData";
 import { useRouter } from "next/navigation";
+export const runtime = "edge"
 
 // shadcn/ui
 import {

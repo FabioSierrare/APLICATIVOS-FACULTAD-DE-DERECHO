@@ -1,8 +1,11 @@
+export const runtime = "edge"
+
 export default function TurnoCard({ fecha, jornada }) {
   const fechaObj = new Date(fecha);
 
   const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
   const fechaFormateada = fechaObj.toLocaleDateString('es-ES', opciones);
+  
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-6 w-full max-w-md mx-auto my-4 transition hover:shadow-xl border border-gray-200">
