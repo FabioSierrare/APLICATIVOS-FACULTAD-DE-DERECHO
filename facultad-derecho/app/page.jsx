@@ -6,6 +6,8 @@ import { postData } from '@/components/FetchPost';
 import { type } from "os";
 import { useAuth } from "@/components/AuthCont";
 
+export const runtime = "edge"
+
 export default function Login() {
   const router = useRouter();
   const [FormularioLogin, setFormularioLogin] = useState({

@@ -3,6 +3,7 @@
   import { useRouter } from "next/navigation";
   import useFetchData from "@/components/FetchData";
   import { postData } from "@/components/FetchPost";
+  export const runtime = "edge"
 
   // --- Optional shared UI libs (available in this environment) ---
   import { Button } from "@/components/ui/button";
