@@ -50,14 +50,7 @@ export default function LayoutAdmin({ children }) {
           <LogOut className="h-4 w-4" />
           Cerrar sesión
         </Button>
-        <Button
-          onClick={handleLogout}
-          variant="destructive"
-          className="flex items-center gap-2"
-        >
-          <LogOut className="h-4 w-4" />
-          Cerrar sesión
-        </Button>
+        
       </NavBar>
 
       <main className="flex-1 p-4">{children}</main>
