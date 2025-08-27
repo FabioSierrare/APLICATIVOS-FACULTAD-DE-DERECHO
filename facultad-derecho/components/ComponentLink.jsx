@@ -1,15 +1,15 @@
-"use client"
-import Link from "next/link";
+import React from "react";
 
-export default function ComponentLink({ label, href, isActive = false }) {
+export default function ComponentLink({ label, href, isActive = false, Icon }) {
   return (
-    <Link
+    <a
       href={href}
-      className={`block pl-3 hover:text-active-text font-normal text-[14px] ${
-        isActive ? "text-active-text" : "text-white"
+      className={`flex items-center gap-2 px-2 py-2 rounded-xl ${
+        isActive ? "bg-white/20 text-active-text" : "text-white hover:bg-white/10"
       }`}
     >
+      {Icon && <Icon className="w-5 h-5" />} {/* Icono opcional */}
       {label}
-    </Link>
+    </a>
   );
 }

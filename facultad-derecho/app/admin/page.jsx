@@ -311,6 +311,7 @@
         // Success UI feedback is below; in your app you can redirect:
         // router.push("/admin/calendarios-creados");
         alert("Calendario guardado correctamente");
+        router.push("/admin/calendarios-creados");
       } catch (err) {
         setSubmitting(false);
         setErrorMensaje(err?.message || "Error inesperado");
@@ -329,7 +330,7 @@
 
     // ======= UI =======
     return (
-      <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 to-white">
+      <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 to-white rounded-2xl">
         {/* Top Bar */}
         
 
