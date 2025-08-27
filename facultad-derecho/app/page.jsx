@@ -3,8 +3,6 @@ import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { postData } from "@/components/FetchPost";
-import { useState } from 'react';
-import { postData } from '@/components/FetchPost';
 import { useAuth } from "@/components/AuthCont";
 import Link from "next/link";
 import NavBar from "@/components/NavBar";
