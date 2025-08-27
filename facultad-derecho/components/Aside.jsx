@@ -6,7 +6,7 @@ export default function Aside({children}) {
   const pathname = usePathname();
 
   return (
-    <aside className="h-screen sticky top-0 w-[250px] flex flex-col pb-6 bg-primary">
+    <aside className="h-screen sticky top-0 w-[250px] flex flex-col bg-primary">
      <header className='mb-5'>
       <div>
         <span>
