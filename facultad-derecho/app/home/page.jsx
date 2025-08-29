@@ -117,7 +117,7 @@ export default function Home() {
       }
 
       alert("Turno guardado con éxito");
-      router.push("/turnos");
+      router.push("/home/turnos");
     } catch (error) {
       console.error("❌ Error:", error);
       alert("Ocurrió un error al guardar el turno");
