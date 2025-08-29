@@ -7,7 +7,8 @@ import { jwtDecode } from "jwt-decode";
 import useFetchData from "@/components/FetchData";
 import { postData } from "@/components/FetchPost";
 import { useUsuarioTurno } from "@/components/UsuarioData";
-export const runtime = "edge"
+import { useRouter } from "next/router";
+export const runtime = "edge";
 
 export default function Home() {
   const [jornada, setJornada] = useState("");
@@ -17,6 +18,7 @@ export default function Home() {
 
   const { usuarioId, consultorioId, calendarioId } = useUsuarioTurno();
   const [Turnos, setTurnos] = useState({});
+  const router = useRouter();
   // Después de hacer login y obtener el token
 
   //Aqui se esta obteniendo los datos para el uso de calendario
@@ -114,8 +116,8 @@ export default function Home() {
         throw new Error("Error al guardar el turno");
       }
 
-      console.log("✅ Turno guardado:");
       alert("Turno guardado con éxito");
+      router.push("/turnos");
     } catch (error) {
       console.error("❌ Error:", error);
       alert("Ocurrió un error al guardar el turno");
@@ -182,7 +184,7 @@ export default function Home() {
             <h4 className="p-0">Conciliacion</h4>
           </div>
           <button
-            className="bg-primary hover:bg-primary-dark text-white font-bold py-2 px-6 rounded-lg transition w-full"
+            className="cursor-pointer bg-primary hover:bg-primary-dark text-white font-bold py-2 px-6 rounded-lg transition w-full"
             onClick={handleSaveTurno}
           >
             SOLICITAR TURNO

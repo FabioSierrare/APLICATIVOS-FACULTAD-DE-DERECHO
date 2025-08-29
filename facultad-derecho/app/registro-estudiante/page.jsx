@@ -1,14 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import useFetchData from "@/components/FetchData";
 import { postData } from "@/components/FetchPost";
 import NavBar from "@/components/NavBar";
 import ComponentLink from "@/components/ComponentLink";
 import { usePathname } from "next/navigation";
 export const runtime = "edge";
-import { User, LogIn } from "lucide-react"; 
-
-
+import { User, LogIn } from "lucide-react";
+import { useRouter } from "next/router";
 export default function RegistroFormulario() {
   const [form, setForm] = useState({
     Usuarios: {
@@ -29,13 +27,33 @@ export default function RegistroFormulario() {
   const [enviando, setEnviando] = useState(false);
   const [mensaje, setMensaje] = useState(null);
   const pathname = usePathname();
+  const [consultorio, setConsultorio] = useState([]);
+  const [tipoDocumento, setTipoDocumento] = useState([]);
+  const router = useRouter();
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [consultoriosRes, tiposDocRes] = await Promise.all([
+          fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/Consultorios/GetConsultorios`
+          ).then((res) => res.json()),
+          fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/TiposDocumento/GetTiposDocumento`
+          ).then((res) => res.json()),
+        ]);
 
-  const { data: consultorio } = useFetchData(
-    "/api/Consultorios/GetConsultorios"
-  );
-  const { data: tipoDocumento } = useFetchData(
-    "/api/TiposDocumento/GetTiposDocumento"
-  );
+        setConsultorio(consultoriosRes);
+        setTipoDocumento(tiposDocRes);
+      } catch (err) {
+        console.error("Error cargando datos", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const numericFields = ["ConsultorioId", "TipoDocumentoId"];
 
@@ -98,6 +116,7 @@ export default function RegistroFormulario() {
             ConsultorioId: 0,
           },
         });
+        router.push("/");
       } else {
         setMensaje({
           tipo: "error",
@@ -111,8 +130,11 @@ export default function RegistroFormulario() {
     }
   }
 
-  if (!consultorio || !tipoDocumento) return null;
-  console.log("llego");
+  if (!consultorio || !tipoDocumento) {
+    return (
+      <p className="text-center mt-10 text-primary">Cargando formulario...</p>
+    );
+  }
 
   return (
     <div>
@@ -339,14 +361,14 @@ export default function RegistroFormulario() {
                         },
                       })
                     }
-                    className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    className="cursor-pointer rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
                     Limpiar
                   </button>
                   <button
                     type="submit"
                     disabled={enviando}
-                    className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-black disabled:opacity-60"
+                    className="cursor-pointer rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-black disabled:opacity-60"
                   >
                     {enviando ? "Enviando…" : "Guardar"}
                   </button>
