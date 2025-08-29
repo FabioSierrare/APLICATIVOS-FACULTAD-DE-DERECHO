@@ -97,7 +97,8 @@ export default function Login() {
             <input
               type="text"
               name="Correo"
-              placeholder="correo@universidadmayor.edu.co  "
+              placeholder="correo@universidadmayor.edu.co"
+              autoCapitalize="none"
               required
               className="focus:outline-none focus:border-primary w-full px-4 py-3 border-bord rounded-lg transition-colors duration-300 border hover:border-facultad-azul"
               value={FormularioLogin.Correo}
@@ -113,6 +114,7 @@ export default function Login() {
               value={FormularioLogin.Contrasena}
               onChange={handlerChange}
               placeholder="Ingrese su contraseña"
+              autoCapitalize="none"
               required
               className="focus:outline-none focus:border-primary w-full px-4 py-3 border-bord rounded-lg transition-colors duration-300 border hover:border-facultad-azul"
             />
