@@ -29,7 +29,7 @@ export default function RegistroFormulario() {
   const [tipoDocumento, setTipoDocumento] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -57,8 +57,18 @@ export default function RegistroFormulario() {
   const numericFields = ["ConsultorioId", "TipoDocumentoId"];
 
   // 🔹 handler para objetos anidados
+  // handler para objetos anidados con validación
   const handleChange = (e, section) => {
     const { name, value } = e.target;
+
+    // Validación personalizada
+    if (name === "Documento" && !/^[0-9]*$/.test(value)) {
+      return; // ❌ bloquea todo lo que no sea número
+    }
+
+    if (name === "Nombre" && !/^[a-zA-Z\s]*$/.test(value)) {
+      return; // ❌ bloquea todo lo que no sea letra o espacio
+    }
 
     setForm((prev) => ({
       ...prev,
@@ -86,6 +96,15 @@ export default function RegistroFormulario() {
       setMensaje({
         tipo: "error",
         texto: "Por favor completa todos los campos requeridos.",
+      });
+      return;
+    }
+    // Validar correo solo si escribió algo
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@universidadmayor\.edu\.co$/;
+    if (form.Usuarios.Correo && !emailRegex.test(form.Usuarios.Correo)) {
+      setMensaje({
+        tipo: "error",
+        texto: "El correo no es válido. Ejemplo: usuario@dominio.com",
       });
       return;
     }
@@ -194,6 +213,7 @@ export default function RegistroFormulario() {
                     required
                     value={form.Usuarios.Nombre}
                     onChange={(e) => handleChange(e, "Usuarios")}
+                    autoCapitalize="none"
                     placeholder="Nombre completo"
                     className="mt-1 block w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-gray-200"
                   />
@@ -212,6 +232,7 @@ export default function RegistroFormulario() {
                     name="Documento"
                     type="text"
                     inputMode="numeric"
+                    autoCapitalize="none"
                     required
                     value={form.Usuarios.Documento}
                     onChange={(e) => handleChange(e, "Usuarios")}
@@ -260,9 +281,10 @@ export default function RegistroFormulario() {
                     name="Correo"
                     type="email"
                     required
+                    autoCapitalize="none"
                     value={form.Usuarios.Correo}
                     onChange={(e) => handleChange(e, "Usuarios")}
-                    placeholder="tucorreo@dominio.com"
+                    placeholder="tucorreo@universidadmayor.edu.co"
                     className="mt-1 block w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-gray-200"
                   />
                 </div>
@@ -282,6 +304,7 @@ export default function RegistroFormulario() {
                       type={mostrarPass ? "text" : "password"}
                       required
                       minLength={8}
+                      autoCapitalize="none"
                       value={form.Usuarios.Contrasena}
                       onChange={(e) => handleChange(e, "Usuarios")}
                       placeholder="Mínimo 8 caracteres"
