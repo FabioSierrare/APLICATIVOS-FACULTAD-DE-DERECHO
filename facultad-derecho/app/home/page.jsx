@@ -7,7 +7,7 @@ import { jwtDecode } from "jwt-decode";
 import useFetchData from "@/components/FetchData";
 import { postData } from "@/components/FetchPost";
 import { useUsuarioTurno } from "@/components/UsuarioData";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 export const runtime = "edge";
 
 export default function Home() {
