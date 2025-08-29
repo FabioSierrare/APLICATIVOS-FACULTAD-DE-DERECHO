@@ -3,10 +3,9 @@ import React, { useState, useEffect } from "react";
 import { postData } from "@/components/FetchPost";
 import NavBar from "@/components/NavBar";
 import ComponentLink from "@/components/ComponentLink";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 export const runtime = "edge";
 import { User, LogIn } from "lucide-react";
-import { useRouter } from "next/router";
 export default function RegistroFormulario() {
   const [form, setForm] = useState({
     Usuarios: {
