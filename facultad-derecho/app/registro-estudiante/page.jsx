@@ -104,7 +104,7 @@ export default function RegistroFormulario() {
     if (form.Usuarios.Correo && !emailRegex.test(form.Usuarios.Correo)) {
       setMensaje({
         tipo: "error",
-        texto: "El correo no es válido. Ejemplo: usuario@dominio.com",
+        texto: "El correo no es válido. Ejemplo: pepe@universidadmayor.edu.co",
       });
       return;
     }
