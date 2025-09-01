@@ -84,11 +84,11 @@ const turnosPM = Turnos?.filter(
        formatearFecha(t.fecha) === formatearFecha(day.fecha)
 ).length || 0;
 
+
 // Bloqueo según jornada seleccionada
 
 
 
-  console.log(turnosAM, turnosPM, Turnos)
   const bloqueadoPorLimiteJornada =
     jornadaSeleccionada === "AM"
       ? turnosAM >= configDia.maxTurnosAM
@@ -100,12 +100,11 @@ const turnosPM = Turnos?.filter(
         const limite = LimitesTurnos?.find(
           l => l.consultorioId === consultorioId && l.calendarioId === calendarioId
         )?.limiteTurnos || Infinity;
+        console.log(limite)
 
         const totalTurnos = Turnos?.filter(
   t => t.usuarioId === usuarioId &&
-       t.calendarioId === calendarioId &&
-       formatearFecha(t.fecha) === formatearFecha(day.fecha)
-).length || 0;
+       t.calendarioId === calendarioId).length || 0;
 
         return {
           ...day,
