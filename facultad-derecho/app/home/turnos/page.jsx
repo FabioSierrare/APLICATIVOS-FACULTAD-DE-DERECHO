@@ -29,7 +29,7 @@ export default function TurnoCard() {
   return (
     <div>
       <h1 className="text-active-text text-3xl mt-4 mb-6 font-semibold mx-5">
-        SOLICITUD DE TURNOS CONSULTORIO
+        MIS TURNOS
       </h1>
 
       <div className="grid grid-cols-2 m-10 gap-10">

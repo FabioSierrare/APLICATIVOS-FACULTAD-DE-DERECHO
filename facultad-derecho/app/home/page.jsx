@@ -48,7 +48,6 @@ export default function Home() {
       jornada: jornada,
     };
 
-    console.log("Turno seleccionado:", turnoSeleccionado);
 
     // Aquí podrías hacer un fetch/post a tu API:
     // fetch("/api/turnos", { method: "POST", body: JSON.stringify(turnoSeleccionado) })
@@ -63,7 +62,6 @@ export default function Home() {
     if (!consultorio || !Array.isArray(consultorio) || consultorio.length === 0)
       return;
 
-    console.log("Consultorio", consultorio);
   }, [consultorio]);
 
   //Aqui se esta preparando los datos a guardar de Turnos
@@ -82,7 +80,6 @@ export default function Home() {
   useEffect(() => {
     if (!Turnos) return;
 
-    console.log("Turnos actualizado:", Turnos);
 
     if (
       Turnos.UsuarioId &&
@@ -90,9 +87,7 @@ export default function Home() {
       Turnos.Fecha &&
       Turnos.Jornada
     ) {
-      console.log("✅ Turnos está lleno", Turnos);
     } else {
-      console.log("⚠️ Turnos incompleto");
     }
   }, [Turnos]);
 
@@ -119,7 +114,6 @@ export default function Home() {
       alert("Turno guardado con éxito");
       router.push("/home/turnos");
     } catch (error) {
-      console.error("❌ Error:", error);
       alert("Ocurrió un error al guardar el turno");
     }
   };
@@ -176,12 +170,9 @@ export default function Home() {
             </select>
           </div>
           <div className="grid grid-cols-2 items-center gap-1">
-            <div className="w-10 h-10 bg-primary"></div>
-            <h4 className="p-0">Cupos llenos</h4>
-            <div className="w-10 h-10 bg-red-700"></div>
-            <h4 className="p-0">Festivo</h4>
-            <div className="w-10 h-10 bg-facultad-azul"></div>
-            <h4 className="p-0">Conciliacion</h4>
+            <div className="w-10 h-10 bg-secundary-text"></div>
+            <h4 className="p-0">Cupos no disponibles</h4>
+            
           </div>
           <button
             className="cursor-pointer bg-primary hover:bg-primary-dark text-white font-bold py-2 px-6 rounded-lg transition w-full"
