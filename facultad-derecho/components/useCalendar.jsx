@@ -18,12 +18,11 @@ export const useCalendar = (initialMonth, initialYear, jornadaSeleccionada) => {
   const { usuarioId, consultorioId, calendarioId } = useUsuarioTurno();
 
   const compararFechas = (f1, f2) => {
-    const d1 = new Date(f1);
-    const d2 = new Date(f2);
-    d1.setHours(0,0,0,0);
-    d2.setHours(0,0,0,0);
-    return d1 - d2;
-  };
+  const d1 = new Date(f1).toISOString().split("T")[0];
+  const d2 = new Date(f2).toISOString().split("T")[0];
+  return d1.localeCompare(d2);
+};
+
 
   const cambiarMes = (incremento) => {
     let nuevoMes = mes + incremento;
@@ -44,11 +43,12 @@ export const useCalendar = (initialMonth, initialYear, jornadaSeleccionada) => {
   
 
   useEffect(() => {
-     if (!usuarioId || !consultorioId || !calendarioId || !configuracionDias || !Turnos) return;
+     if (!usuarioId  || !mes || !año || !LimitesTurnos || !consultorioId || !calendarioId || !configuracionDias || !Turnos || !calendario) return;
     const cargarDias = async () => {
       // Obtener días del mes, aunque no haya turnos
       const dias = await obtenerCalendarioHabilColombia(año, mes);
       const diaABloquear = calendario?.[calendario.length - 1] || {};
+
 
       const diasActualizados = dias.map(day => {
         const formatearFecha = (fecha) => new Date(fecha).toISOString().split('T')[0];
@@ -69,14 +69,16 @@ export const useCalendar = (initialMonth, initialYear, jornadaSeleccionada) => {
            .replace(/[\u0300-\u036f]/g, '')
            .toLowerCase() === diaSemanaMinuscula
   ) || { maxTurnosAM: Infinity, maxTurnosPM: Infinity };
+
   
   
 
-  const turnosAM = Turnos?.filter(
+const turnosAM = Turnos?.filter(
   t => t.calendarioId === calendarioId &&
        t.jornada === "AM" &&
        formatearFecha(t.fecha) === formatearFecha(day.fecha)
 ).length || 0;
+
 
 const turnosPM = Turnos?.filter(
   t => t.calendarioId === calendarioId &&
@@ -85,8 +87,9 @@ const turnosPM = Turnos?.filter(
 ).length || 0;
 
 
-// Bloqueo según jornada seleccionada
 
+
+// Bloqueo según jornada seleccionada
 
 
   const bloqueadoPorLimiteJornada =
@@ -100,11 +103,11 @@ const turnosPM = Turnos?.filter(
         const limite = LimitesTurnos?.find(
           l => l.consultorioId === consultorioId && l.calendarioId === calendarioId
         )?.limiteTurnos || Infinity;
-        console.log(limite)
 
         const totalTurnos = Turnos?.filter(
   t => t.usuarioId === usuarioId &&
        t.calendarioId === calendarioId).length || 0;
+       
 
         return {
           ...day,
