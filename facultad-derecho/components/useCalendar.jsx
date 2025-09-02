@@ -92,12 +92,16 @@ const turnosPM = Turnos?.filter(
 // Bloqueo según jornada seleccionada
 
 
-  const bloqueadoPorLimiteJornada =
-    jornadaSeleccionada === "AM"
+  // 🚨 Si no se ha seleccionado jornada, el día se bloquea automáticamente
+const bloqueadoPorLimiteJornada =
+  !jornadaSeleccionada
+    ? true
+    : jornadaSeleccionada === "AM"
       ? turnosAM >= configDia.maxTurnosAM
       : jornadaSeleccionada === "PM"
         ? turnosPM >= configDia.maxTurnosPM
         : false;
+
 
         // Límite global de turnos por consultorio/calendario
         const limite = LimitesTurnos?.find(
