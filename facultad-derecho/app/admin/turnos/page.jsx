@@ -1,24 +1,32 @@
-"use client"
+"use client";
 import useFetchData from "@/components/FetchData";
 import { useEffect, useState } from "react";
 import { useUsuarioTurno } from "@/components/UsuarioData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Pencil, Search } from "lucide-react";
+import { Pencil, Search, FileDown } from "lucide-react";
 import { useRouter } from "next/navigation";
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
+import JSZip from "jszip"; // 🔹 usamos JSZip en vez de fs/archiver (porque estamos en cliente)
 
 export default function Turnos() {
   const { data: Turno } = useFetchData("/api/Turnos/GetTurnos");
   const { data: Usuarios } = useFetchData("/api/Usuarios/GetUsuarios");
   const { data: Rol } = useFetchData("/api/Rol/GetRol");
-  const { data: Consultorios } = useFetchData("/api/Consultorios/GetConsultorios");
+  const { data: Consultorios } = useFetchData(
+    "/api/Consultorios/GetConsultorios"
+  );
+  const { data: ConfiguracionDias } = useFetchData(
+    "/api/ConfiguracionDias/GetConfiguracionDias"
+  );
+  const { data: Calendario } = useFetchData("/api/Calendarios/GetCalendarios");
   const [Turnos, setmisTurnos] = useState([]);
-  const [search, setSearch] = useState(""); // estado para búsqueda
+  const [search, setSearch] = useState("");
   const { usuarioId, consultorioId, calendarioId } = useUsuarioTurno();
   const router = useRouter();
-
   useEffect(() => {
-    if (!Turno || !usuarioId || !calendarioId || !Usuarios || !Rol || !Consultorios) return;
+    if (!Turno || !Usuarios || !Consultorios) return; // 👈 dejamos lo mínimo necesario
 
     const TurnosX = Turno.map((t) => {
       const usuario = Usuarios.find((u) => u.id === t.usuarioId);
@@ -31,10 +39,46 @@ export default function Turnos() {
         consultorio: Consultorio?.nombre,
       };
     });
-    setmisTurnos(TurnosX);
-  }, [Turno, usuarioId, calendarioId, Usuarios, Rol, Consultorios]);
 
-  // Filtrado en tiempo real
+    setmisTurnos(TurnosX);
+  }, [Turno, Usuarios, Consultorios]); // 👈 dependencias mínimas
+
+  const excel =
+    Usuarios && Consultorios
+      ? (Turnos || [])
+          .map((t) => {
+            const usuario = Usuarios.find((u) => u.id === t.usuarioId);
+            const consultorio = Consultorios.find(
+              (c) => c.id === t.consultorioId
+            );
+
+            // Convertir la fecha a objeto Date
+            const fechaObj = t?.fecha ? new Date(t.fecha) : null;
+
+            // Formatear fecha: "Sep-07-2025"
+            const fechaFormateada = fechaObj
+              ? fechaObj
+                  .toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "2-digit",
+                    year: "numeric",
+                  })
+                  .replace(/ /g, "-") // cambia espacios por guiones
+              : "Sin fecha";
+
+            return {
+              Estudiante: usuario?.nombre || "Sin nombre",
+              Consultorio: consultorio?.id || "Sin consultorio",
+              fechaTurno: fechaFormateada,
+              jornada: t?.jornada || "Sin jornada",
+              fechaOrden: fechaObj ? fechaObj.getTime() : 0, // 🔹 para ordenar
+            };
+          })
+          .sort((a, b) => a.fechaOrden - b.fechaOrden) // 🔹 ordenar por fecha
+          .map(({ fechaOrden, ...rest }) => rest) // eliminar el campo auxiliar
+      : [];
+
+  console.log(excel);
   const filteredTurnos = Turnos.filter(
     (turno) =>
       turno?.nombre?.toLowerCase().includes(search.toLowerCase()) ||
@@ -56,10 +100,63 @@ export default function Turnos() {
             onChange={(e) => setSearch(e.target.value)}
             className="rounded-xl border-gray-300 focus:ring-2 focus:ring-[#553285] transition"
           />
-          <Button variant="secondary" className="bg-[#553285] text-white hover:bg-[#553285]/80 rounded-xl px-4">
+          <Button
+            variant="secondary"
+            className="bg-[#553285] text-white hover:bg-[#553285]/80 rounded-xl px-4"
+          >
             <Search className="h-5 w-5" />
           </Button>
         </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+        <Button
+          onClick={async () => {
+            try {
+              const diaConciliacion = "Martes"; // ⚡️ puedes traerlo dinámico
+              const jornada = ConfiguracionDias.calendarioId === calendarioId;
+              const data = excel; // aquí ya tienes tu array formateado
+              const calendario = Calendario.find((t) => t.id === calendarioId);
+
+              const response = await fetch("/api/exportar-turnos", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  diaConciliacion,
+                  jornada,
+                  data,
+                  calendario,
+                }),
+              });
+
+              if (!response.ok) {
+                alert("❌ Error al generar el archivo");
+                return;
+              }
+
+              const blob = await response.blob();
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `turnosMes_${diaConciliacion}.zip`;
+              a.click();
+              window.URL.revokeObjectURL(url);
+            } catch (error) {
+              console.error("⚠️ Error al descargar:", error);
+              alert("Ocurrió un error al descargar el archivo");
+            }
+          }}
+          className="bg-green-600 text-white rounded-lg px-4 py-2 hover:bg-green-700"
+        >
+          Descargar Excels turnos
+        </Button>
+         <Button>
+          Cambiar turno
+        </Button>
+        <Button>
+          Añadir turno
+        </Button>
       </div>
 
       {/* Lista de turnos */}
@@ -96,12 +193,10 @@ export default function Turnos() {
                   </h2>
                   <Button
                     variant="secondary"
-                    className="rounded-lg bg-primary text-white hover:bg-primary/80 cursor-pointer"
-                    onClick={() =>
-                      router.push(`/admin/turnos/${turno.id}`)
-                    }
+                    className="rounded-lg bg-red-500 text-white hover:bg-red-500/90 cursor-pointer"
+                    onClick={() => router.push(`/admin/turnos/${turno.id}`)}
                   >
-                    <Pencil className="h-4 w-4 mr-1" /> Editar
+                  Eliminar
                   </Button>
                 </div>
 
@@ -128,7 +223,6 @@ export default function Turnos() {
                       {fechaFormateada}
                     </span>
                   </p>
-
                   <p className="text-gray-700">
                     <span className="font-semibold text-[#333333]">
                       Estudiante:

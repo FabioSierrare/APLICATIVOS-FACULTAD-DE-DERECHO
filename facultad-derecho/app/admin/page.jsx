@@ -62,7 +62,7 @@
       ConfiguracionDias: [],
     });
 
-    const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+    const diasSemana = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes"];
     const semestreOptions = [
       { value: "S1", label: "Primer Semestre" },
       { value: "S2", label: "Segundo Semestre" },
