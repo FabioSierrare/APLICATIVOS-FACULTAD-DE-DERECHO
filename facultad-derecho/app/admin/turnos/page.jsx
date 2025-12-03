@@ -100,6 +100,10 @@ export default function Turnos() {
     console.error(error);
   }
   }
+  if (!Calendario || !ConfiguracionDias) {
+    return <div>Cargando...</div>;
+  }
+
 
   return (
     <div className="m-6 md:m-10">
@@ -126,7 +130,7 @@ export default function Turnos() {
         <Button
           onClick={async () => {
             try {
-              const diaConciliacion = "Martes"; // ⚡️ puedes traerlo dinámico
+              const diaConciliacion = Calendario.find((t) => t.id === calendarioId).diaConciliacion;
               const jornada = ConfiguracionDias.calendarioId === calendarioId;
               const data = excel; // aquí ya tienes tu array formateado
               const calendario = Calendario.find((t) => t.id === calendarioId);
