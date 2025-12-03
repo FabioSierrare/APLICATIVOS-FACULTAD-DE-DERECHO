@@ -188,12 +188,6 @@ export default function TurnosTable() {
                     <td className="px-4 py-3 text-sm">{user.consultorio}</td>
                     <td className="px-4 py-3 flex gap-2 justify-center">
                       <Button
-                        className="bg-[#553285] hover:bg-[#45236b] text-white rounded-lg"
-                        size="sm"
-                      >
-                        Editar
-                      </Button>
-                      <Button
                         onClick={() => handleSendEmail(user)}
                         className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg"
                         size="sm"
