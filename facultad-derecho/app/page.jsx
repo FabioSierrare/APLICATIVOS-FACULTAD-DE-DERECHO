@@ -68,12 +68,6 @@ export default function Login() {
           isActive={pathname === "/"}
           Icon={LogIn} // icono de iniciar sesión
         />
-        <ComponentLink
-          label="Registrarse"
-          href="/registro-estudiante"
-          isActive={pathname === "/registro-estudiante"}
-          Icon={User} // icono de usuario/registro
-        />
       </NavBar>
 
       <div className="bg-white p-12 rounded-2xl shadow-2xl max-w-[460px] m-auto">

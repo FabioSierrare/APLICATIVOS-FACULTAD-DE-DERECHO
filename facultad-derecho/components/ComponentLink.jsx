@@ -4,7 +4,7 @@ export default function ComponentLink({ label, href, isActive = false, Icon }) {
   return (
     <a
       href={href}
-      className={`flex items-center gap-2 px-2 py-2 rounded-xl ${
+      className={`flex items-center text-[13px] font-light gap-2 px-5 py-2 rounded-md ${
         isActive ? "bg-white/20 text-active-text" : "text-white hover:bg-white/10"
       }`}
     >

@@ -123,5 +123,22 @@
     --color-secundary-text: #666666;
     --color-tercer-text: #333333;
     --color-bord: #dddddd;
-    --color-facultad-azul: #0047BB
+    --color-facultad-azul: #0047BB;
+
+    --breakpoint-xs: 360px
 }
+
+:root {
+  --rdp-accent-color: #9DB77E;
+  --rdp-accent-color-dark: #7b9964;
+  --rdp-background-color: #ffffff;
+  --rdp-cell-size: 42px;
+  --rdp-outline: none;
+  --rdp-font-family: 'Poppins', sans-serif;
+  --rdp-nav-button-color: #000000;
+}
+
+.rdp-root {
+  --rdp-accent-background-color: red; /* Use blue as the accent color. */
+}
+

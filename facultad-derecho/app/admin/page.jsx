@@ -77,7 +77,6 @@
       "/api/Consultorios/GetConsultorios"
     );
     const [consultorios, setConsultorios] = useState([]);
-    console.log(consultorio);
 
     useEffect(() => {
       if (Array.isArray(consultorio)) {
@@ -158,6 +157,17 @@
         prev.map((cons) => (cons.id === id ? { ...cons, [field]: value } : cons))
       );
     };
+
+    useEffect(() => {
+      if (!diaConciliacion) return;
+      setConfigDias((prev) =>
+        prev.map((d) =>
+          d.dia === diaConciliacion
+            ? { ...d, maxTurnosAM: 0, maxTurnosPM: 0 }
+            : d
+        )
+      );
+    }, [diaConciliacion]);
 
     // ======= VALIDATIONS & CALCS =======
     const validarFormulario = () => {
