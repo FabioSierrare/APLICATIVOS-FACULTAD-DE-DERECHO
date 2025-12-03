@@ -14,8 +14,9 @@ export async function POST(req) {
   try {
     const body = await req.json();
     const { diaConciliacion = "Martes", data = [], calendario = {} } = body;
+    console.log("📅 Generando turnos para:", diaConciliacion);
 
-    // 📌 Ruta de la plantilla
+    // 📌 Ruta de la plantilla según el día
     const plantillaPath = path.join(
       process.cwd(),
       "plantillas",
@@ -51,18 +52,52 @@ export async function POST(req) {
     if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
 
     const archivos = [];
+    const historial = []; // Guardamos fila, jornada y día
 
-    // 🔹 Mapa de filas según día y jornada
-    const filasPorDiaYJornada = {
-      Lunes: { AM: [8, 10], PM: [12, 14] },
-      Martes: { AM: [8, 10], PM: [12, 14] },
-      Miércoles: { AM: [16, 18], PM: [20, 22] },
-      Jueves: { AM: [24, 26], PM: [28, 30] },
-      Viernes: { AM: [32, 34], PM: [36, 38] },
+    // 🔹 Mapeo de filas por día de conciliación y jornada
+    const filasPorDiaConciliacion = {
+      Lunes: {
+        Lunes: { AM: [8, 10], PM: [12, 14] },
+        Martes: { AM: [8, 10], PM: [12, 14] },
+        Miércoles: { AM: [16, 18], PM: [20, 22] },
+        Jueves: { AM: [24, 26], PM: [28, 30] },
+        Viernes: { AM: [32, 34], PM: [36, 38] },
+      },
+      Martes: {
+        Lunes: { AM: [8, 10], PM: [12, 14] },
+        Martes: { AM: [8, 10], PM: [12, 14] },
+        Miércoles: { AM: [16, 18], PM: [20, 22] },
+        Jueves: { AM: [24, 26], PM: [28, 30] },
+        Viernes: { AM: [32, 34], PM: [36, 38] },
+      },
+      Miércoles: {
+        Lunes: { AM: [8, 10], PM: [12, 14] },
+        Martes: { AM: [15, 17], PM: [19, 21] },
+        Miércoles: { AM: [15, 17], PM: [19, 21] },
+        Jueves: { AM: [24, 26], PM: [28, 30] },
+        Viernes: { AM: [32, 34], PM: [36, 38] },
+      },
+      Jueves: {
+        Lunes: { AM: [8, 10], PM: [12, 14] },
+        Martes: { AM: [15, 17], PM: [19, 21] },
+        Miércoles: { AM: [23, 25], PM: [27, 29] },
+        Jueves: { AM: [23, 25], PM: [27, 29] },
+        Viernes: { AM: [31, 33], PM: [35, 37] },
+      },
+      Viernes: {
+        Lunes: { AM: [8, 10], PM: [12, 14] },
+        Martes: { AM: [15, 17], PM: [19, 21] },
+        Miércoles: { AM: [23, 25], PM: [27, 29] },
+        Jueves: { AM: [31, 33], PM: [35, 37] },
+        Viernes: { AM: [31, 33], PM: [35, 37] },
+      },
     };
 
+    // Seleccionar el mapa correcto según el día de conciliación
+    const filasPorDiaYJornada = filasPorDiaConciliacion[diaConciliacion];
+
     // 🔹 Crear un Excel por semana
-    for (let semana = 1; semana <= semanas.length; semana++) {
+    for (let i = 0; i < semanas.length; i++) {
       const workbook = new ExcelJS.Workbook();
       await workbook.xlsx.readFile(plantillaPath);
 
@@ -74,49 +109,54 @@ export async function POST(req) {
         );
       }
 
-      // Agregar turnos correspondientes a esta semana
-      turnosPorSemana[semana - 1].forEach((dia) => {
-        // Para cada turno, usamos su propia jornada y fila local
-        const turnosAM = dia.turnos.filter((t) => t.jornada === "AM");
-        const turnosPM = dia.turnos.filter((t) => t.jornada === "PM");
-
-        // Función para escribir los turnos en las filas correctas
-        const escribirTurnos = (turnos, jornada) => {
+      // Procesar cada día de la semana
+      turnosPorSemana[i].forEach((dia) => {
+        ["AM", "PM"].forEach((jornada) => {
+          const turnos = dia.turnos.filter((t) => t.jornada === jornada);
           const rango = filasPorDiaYJornada[dia.dia]?.[jornada];
-          if (!rango) {
-            console.warn(`No hay filas definidas para ${dia.dia} ${jornada}`);
-            return;
-          }
-          let fila = rango[0]; // fila inicial local
+          if (!rango) return;
+
+          let fila = rango[0];
           turnos.forEach((turno) => {
-            if (fila > rango[1]) return; // no exceder fila final
+            if (fila > rango[1]) return;
+
+            // Escribir en Excel
             sheet.getCell(`B${fila}`).value = turno.Estudiante.toUpperCase();
-            sheet.getCell(`C${fila}`).value = turno.Consultorio; // si es número, no hace falta
-            sheet.getCell(`E${fila}`).value = turno.fechaTurno.toUpperCase(); // si quieres la fecha como string
+            sheet.getCell(`C${fila}`).value = turno.Consultorio;
+            sheet.getCell(`E${fila}`).value = turno.fechaTurno.toUpperCase();
             sheet.getCell(`F${fila}`).value = turno.jornada.toUpperCase();
+
+            // Guardar en historial
+            historial.push({
+              dia: dia.dia,
+              jornada,
+              fila,
+              estudiante: turno.Estudiante,
+              consultorio: turno.Consultorio,
+              fechaTurno: turno.fechaTurno,
+            });
+
             fila++;
           });
-        };
-
-        escribirTurnos(turnosAM, "AM");
-        escribirTurnos(turnosPM, "PM");
+        });
       });
 
-      const filePath = path.join(tempDir, `Semana${semana}.xlsx`);
+      const filePath = path.join(tempDir, `Semana${i + 1}.xlsx`);
       await workbook.xlsx.writeFile(filePath);
       archivos.push(filePath);
     }
 
-    // 📦 Crear ZIP en memoria
+    // 🔹 Guardar historial en JSON
+    const historialPath = path.join(process.cwd(), "historialTurnos.json");
+    fs.writeFileSync(historialPath, JSON.stringify(historial, null, 2));
+
+    // 📦 Crear ZIP
     const archive = archiver("zip", { zlib: { level: 9 } });
     const chunks = [];
-
     archive.on("data", (chunk) => chunks.push(chunk));
-
     archivos.forEach((filePath) => {
       archive.file(filePath, { name: path.basename(filePath) });
     });
-
     await archive.finalize();
     const zipBuffer = Buffer.concat(chunks);
 
