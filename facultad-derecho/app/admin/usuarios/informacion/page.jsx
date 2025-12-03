@@ -94,7 +94,7 @@ export default function GestionUsuarios() {
             </p>
           </div>
 
-          <button className="bg-[#553285] hover:bg-[#432669] text-white px-5 py-2.5 rounded-lg shadow-md transition-all flex items-center gap-2 font-medium">
+          <button onClick={() => router.push("/admin/usuarios/registro-estudiante")} className="bg-[#553285] hover:bg-[#432669] text-white px-5 py-2.5 rounded-lg shadow-md transition-all flex items-center gap-2 font-medium">
             <Plus className="w-5 h-5" />
             Nuevo Usuario
           </button>

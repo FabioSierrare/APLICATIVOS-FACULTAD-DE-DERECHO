@@ -165,8 +165,6 @@ export default function Turnos() {
         >
           Descargar Excels turnos
         </Button>
-        <Button>Cambiar turno</Button>
-        <Button>Añadir turno</Button>
       </div>
 
       {/* Lista de turnos */}
