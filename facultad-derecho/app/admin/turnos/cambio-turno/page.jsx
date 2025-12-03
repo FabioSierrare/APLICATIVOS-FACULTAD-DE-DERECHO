@@ -74,7 +74,6 @@ const turnosfilterB = turnos
 
     try {
       const respuesta = await postData("/api/Turnos/CambioTurnos", TurnoCambio);
-      console.log("Respuesta del servidor:", respuesta);
 
       if (!respuesta) {
         alert("Error al guardar los datos");

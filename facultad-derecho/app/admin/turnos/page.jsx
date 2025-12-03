@@ -4,14 +4,15 @@ import { useEffect, useState } from "react";
 import { useUsuarioTurno } from "@/components/UsuarioData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Pencil, Search, FileDown } from "lucide-react";
+import { Pencil, Search, FileDown, Delete } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { deleteData } from "@/components/Delete";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import JSZip from "jszip"; // 🔹 usamos JSZip en vez de fs/archiver (porque estamos en cliente)
 
 export default function Turnos() {
-  const { data: Turno } = useFetchData("/api/Turnos/GetTurnos");
+  const { data: Turno, fetchData } = useFetchData("/api/Turnos/GetTurnos");
   const { data: Usuarios } = useFetchData("/api/Usuarios/GetUsuarios");
   const { data: Rol } = useFetchData("/api/Rol/GetRol");
   const { data: Consultorios } = useFetchData(
@@ -28,20 +29,19 @@ export default function Turnos() {
   useEffect(() => {
     if (!Turno || !Usuarios || !Consultorios) return; // 👈 dejamos lo mínimo necesario
 
-    const TurnosX = Turno.map((t) => {
-      const usuario = Usuarios.find((u) => u.id === t.usuarioId);
-      const Consultorio = Consultorios.find((c) => c.id === t.consultorioId);
-      return {
-        ...t,
-        nombre: usuario?.nombre,
-        documento: usuario?.documento,
-        correo: usuario?.correo,
-        consultorio: Consultorio?.nombre,
-      };
-    });
-
+    const TurnosX = Turno.filter((t) => t.calendarioId === calendarioId).map((t) => {
+    const usuario = Usuarios.find((u) => u.id === t.usuarioId);
+        const Consultorio = Consultorios.find((c) => c.id === t.consultorioId);
+        return {
+          ...t,
+          nombre: usuario?.nombre,
+          documento: usuario?.documento,
+          correo: usuario?.correo,
+          consultorio: Consultorio?.nombre,
+        };
+  })
     setmisTurnos(TurnosX);
-  }, [Turno, Usuarios, Consultorios]); // 👈 dependencias mínimas
+  }, [Turno, Usuarios, Consultorios, calendarioId]); // 👈 dependencias mínimas
 
   const excel =
     Usuarios && Consultorios
@@ -78,14 +78,28 @@ export default function Turnos() {
           .map(({ fechaOrden, ...rest }) => rest) // eliminar el campo auxiliar
       : [];
 
-  console.log(excel);
-  const filteredTurnos = Turnos.filter(
+  
+      const filteredTurnos = Turnos.filter(
     (turno) =>
       turno?.nombre?.toLowerCase().includes(search.toLowerCase()) ||
       turno?.consultorio?.toLowerCase().includes(search.toLowerCase()) ||
       turno?.jornada?.toLowerCase().includes(search.toLowerCase()) ||
       turno?.documento?.toLowerCase().includes(search.toLowerCase())
   );
+
+  const Eliminar = async (turnoid) => {
+    try {
+    const respuesta = await deleteData(`/api/Turnos/DeleteTurnos`, turnoid);
+    if (!respuesta) {
+        throw new Error("Error al guardar el turno");
+      }
+
+    alert("Turno eliminado correctamente")
+    fetchData();
+  } catch (error) {
+    console.error(error);
+  }
+  }
 
   return (
     <div className="m-6 md:m-10">
@@ -151,12 +165,8 @@ export default function Turnos() {
         >
           Descargar Excels turnos
         </Button>
-         <Button>
-          Cambiar turno
-        </Button>
-        <Button>
-          Añadir turno
-        </Button>
+        <Button>Cambiar turno</Button>
+        <Button>Añadir turno</Button>
       </div>
 
       {/* Lista de turnos */}
@@ -194,9 +204,15 @@ export default function Turnos() {
                   <Button
                     variant="secondary"
                     className="rounded-lg bg-red-500 text-white hover:bg-red-500/90 cursor-pointer"
-                    onClick={() => router.push(`/admin/turnos/${turno.id}`)}
+                    
+                    onClick={() => {
+                       const confirmar = window.confirm("¿Estás seguro de eliminar este turno?");
+                        if (!confirmar) return;
+
+                        Eliminar(turno.id)
+                    }}
                   >
-                  Eliminar
+                    Eliminar
                   </Button>
                 </div>
 

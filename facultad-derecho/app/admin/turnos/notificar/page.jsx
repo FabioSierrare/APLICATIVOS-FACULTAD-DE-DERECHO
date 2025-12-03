@@ -43,12 +43,16 @@ export default function TurnosTable() {
     };
   });
 
-  const filtered = usuarios.filter((u) =>
+  const filteredx = usuarios.filter((u) =>
     [u.nombre, u.correo, u.documento]
       .join(" ")
       .toLowerCase()
       .includes(search.toLowerCase())
   );
+
+  const filtered = filteredx.filter((u) => 
+    u.turnos.length > 0
+  )
 
   const meses = [
     "Enero",

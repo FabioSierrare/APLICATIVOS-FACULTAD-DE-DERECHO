@@ -62,7 +62,7 @@
       ConfiguracionDias: [],
     });
 
-    const diasSemana = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes"];
+    const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
     const semestreOptions = [
       { value: "S1", label: "Primer Semestre" },
       { value: "S2", label: "Segundo Semestre" },
@@ -77,7 +77,6 @@
       "/api/Consultorios/GetConsultorios"
     );
     const [consultorios, setConsultorios] = useState([]);
-    console.log(consultorio);
 
     useEffect(() => {
       if (Array.isArray(consultorio)) {
@@ -158,6 +157,17 @@
         prev.map((cons) => (cons.id === id ? { ...cons, [field]: value } : cons))
       );
     };
+
+    useEffect(() => {
+      if (!diaConciliacion) return;
+      setConfigDias((prev) =>
+        prev.map((d) =>
+          d.dia === diaConciliacion
+            ? { ...d, maxTurnosAM: 0, maxTurnosPM: 0 }
+            : d
+        )
+      );
+    }, [diaConciliacion]);
 
     // ======= VALIDATIONS & CALCS =======
     const validarFormulario = () => {
