@@ -85,7 +85,7 @@ export default function LayoutAdmin({ children }) {
               variant="ghost"
               className={`bg-transparent hover:bg-white/10 hover:text-white font-semibold text-white shadow-none 
                 
-                ${pathname === "/admin"  || pathname === "/admin/calendarios-creados"
+                ${pathname === "/admin/usuarios"  || pathname === "/admin/usuarios/registro-estudiante" || pathname === "/admin/usuarios/informacion"
                   ? "text-active-text" : "text-white"
                 }`}
             >
