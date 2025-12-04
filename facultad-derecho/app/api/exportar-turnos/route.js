@@ -47,6 +47,9 @@ export async function POST(req) {
       })
     );
 
+    const semestre = calendario.semestre || "";
+    const anio = calendario.anio || "";
+
     // 📂 Carpeta temporal
     const tempDir = path.join(process.cwd(), "tempExcels");
     if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
@@ -57,11 +60,11 @@ export async function POST(req) {
     // 🔹 Mapeo de filas por día de conciliación y jornada
     const filasPorDiaConciliacion = {
       Lunes: {
-        Lunes: { AM: [8, 10], PM: [12, 14] },
-        Martes: { AM: [8, 10], PM: [12, 14] },
-        Miércoles: { AM: [16, 18], PM: [20, 22] },
-        Jueves: { AM: [24, 26], PM: [28, 30] },
-        Viernes: { AM: [32, 34], PM: [36, 38] },
+        Lunes: { AM: [9, 11], PM: [9, 11] },
+        Martes: { AM: [9, 11], PM: [13, 15] },
+        Miércoles: { AM: [17, 19], PM: [21, 23] },
+        Jueves: { AM: [25, 27], PM: [29, 31] },
+        Viernes: { AM: [33, 35], PM: [37, 39] },
       },
       Martes: {
         Lunes: { AM: [8, 10], PM: [12, 14] },
@@ -72,24 +75,24 @@ export async function POST(req) {
       },
       Miércoles: {
         Lunes: { AM: [8, 10], PM: [12, 14] },
-        Martes: { AM: [15, 17], PM: [19, 21] },
-        Miércoles: { AM: [15, 17], PM: [19, 21] },
+        Martes: { AM: [16, 18], PM: [20, 22] },
+        Miércoles: { AM: [16, 18], PM: [20, 22] },
         Jueves: { AM: [24, 26], PM: [28, 30] },
         Viernes: { AM: [32, 34], PM: [36, 38] },
       },
       Jueves: {
         Lunes: { AM: [8, 10], PM: [12, 14] },
-        Martes: { AM: [15, 17], PM: [19, 21] },
-        Miércoles: { AM: [23, 25], PM: [27, 29] },
-        Jueves: { AM: [23, 25], PM: [27, 29] },
-        Viernes: { AM: [31, 33], PM: [35, 37] },
+        Martes: { AM: [16, 18], PM: [20, 22] },
+        Miércoles: { AM: [24, 26], PM: [28, 30] },
+        Jueves: { AM: [24, 26], PM: [28, 30] },
+        Viernes: { AM: [32, 34], PM: [36, 38] },
       },
       Viernes: {
         Lunes: { AM: [8, 10], PM: [12, 14] },
-        Martes: { AM: [15, 17], PM: [19, 21] },
-        Miércoles: { AM: [23, 25], PM: [27, 29] },
-        Jueves: { AM: [31, 33], PM: [35, 37] },
-        Viernes: { AM: [31, 33], PM: [35, 37] },
+        Martes: { AM: [16, 18], PM: [20, 22] },
+        Miércoles: { AM: [24, 26], PM: [28, 30] },
+        Jueves: { AM: [32, 34], PM: [36, 38] },
+        Viernes: { AM: [32, 34], PM: [36, 38] },
       },
     };
 
@@ -123,8 +126,15 @@ export async function POST(req) {
             // Escribir en Excel
             sheet.getCell(`B${fila}`).value = turno.Estudiante.toUpperCase();
             sheet.getCell(`C${fila}`).value = turno.Consultorio;
-            sheet.getCell(`E${fila}`).value = turno.fechaTurno.toUpperCase();
+            sheet.getCell(`E${fila}`).value = turno.fechaTurno.replace(",", "").toUpperCase();
             sheet.getCell(`F${fila}`).value = turno.jornada.toUpperCase();
+            if(fila === rango[1]){
+              sheet.getCell(
+              "A5"
+            ).value = `LISTADO DE ASIGNACION DE TURNOS PARA ESTUDIANTES  PERIODO  ${anio} - ${semestre.toUpperCase()}`;
+
+            sheet.getCell("A6").value = `SEMANA No. ${i + 1}`;
+            }
 
             // Guardar en historial
             historial.push({

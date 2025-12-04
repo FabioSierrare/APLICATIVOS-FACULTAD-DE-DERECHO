@@ -29,8 +29,9 @@ export default function Turnos() {
   useEffect(() => {
     if (!Turno || !Usuarios || !Consultorios) return; // 👈 dejamos lo mínimo necesario
 
-    const TurnosX = Turno.filter((t) => t.calendarioId === calendarioId).map((t) => {
-    const usuario = Usuarios.find((u) => u.id === t.usuarioId);
+    const TurnosX = Turno.filter((t) => t.calendarioId === calendarioId).map(
+      (t) => {
+        const usuario = Usuarios.find((u) => u.id === t.usuarioId);
         const Consultorio = Consultorios.find((c) => c.id === t.consultorioId);
         return {
           ...t,
@@ -39,7 +40,8 @@ export default function Turnos() {
           correo: usuario?.correo,
           consultorio: Consultorio?.nombre,
         };
-  })
+      }
+    );
     setmisTurnos(TurnosX);
   }, [Turno, Usuarios, Consultorios, calendarioId]); // 👈 dependencias mínimas
 
@@ -78,8 +80,7 @@ export default function Turnos() {
           .map(({ fechaOrden, ...rest }) => rest) // eliminar el campo auxiliar
       : [];
 
-  
-      const filteredTurnos = Turnos.filter(
+  const filteredTurnos = Turnos.filter(
     (turno) =>
       turno?.nombre?.toLowerCase().includes(search.toLowerCase()) ||
       turno?.consultorio?.toLowerCase().includes(search.toLowerCase()) ||
@@ -89,21 +90,20 @@ export default function Turnos() {
 
   const Eliminar = async (turnoid) => {
     try {
-    const respuesta = await deleteData(`/api/Turnos/DeleteTurnos`, turnoid);
-    if (!respuesta) {
+      const respuesta = await deleteData(`/api/Turnos/DeleteTurnos`, turnoid);
+      if (!respuesta) {
         throw new Error("Error al guardar el turno");
       }
 
-    alert("Turno eliminado correctamente")
-    fetchData();
-  } catch (error) {
-    console.error(error);
-  }
-  }
+      alert("Turno eliminado correctamente");
+      fetchData();
+    } catch (error) {
+      console.error(error);
+    }
+  };
   if (!Calendario || !ConfiguracionDias) {
     return <div>Cargando...</div>;
   }
-
 
   return (
     <div className="m-6 md:m-10">
@@ -130,7 +130,9 @@ export default function Turnos() {
         <Button
           onClick={async () => {
             try {
-              const diaConciliacion = Calendario.find((t) => t.id === calendarioId).diaConciliacion;
+              const diaConciliacion = Calendario.find(
+                (t) => t.id === calendarioId
+              ).diaConciliacion;
               const jornada = ConfiguracionDias.calendarioId === calendarioId;
               const data = excel; // aquí ya tienes tu array formateado
               const calendario = Calendario.find((t) => t.id === calendarioId);
@@ -206,12 +208,13 @@ export default function Turnos() {
                   <Button
                     variant="secondary"
                     className="rounded-lg bg-red-500 text-white hover:bg-red-500/90 cursor-pointer"
-                    
                     onClick={() => {
-                       const confirmar = window.confirm("¿Estás seguro de eliminar este turno?");
-                        if (!confirmar) return;
+                      const confirmar = window.confirm(
+                        "¿Estás seguro de eliminar este turno?"
+                      );
+                      if (!confirmar) return;
 
-                        Eliminar(turno.id)
+                      Eliminar(turno.id);
                     }}
                   >
                     Eliminar

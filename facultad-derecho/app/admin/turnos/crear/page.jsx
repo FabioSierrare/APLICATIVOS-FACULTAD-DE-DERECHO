@@ -49,7 +49,7 @@ export default function prueba() {
 
   const FiltrarTurno = Fecha
     ? Turnos.filter((t) =>
-        isSameDay(startOfDay(new Date(t.fecha)), startOfDay(Fecha))
+        isSameDay(startOfDay(new Date(t.fecha)), startOfDay(Fecha)) && t.calendarioId === CalendarioActual.id
       ).map((t) => ({
         ...t,
         usu: usuarios.find((u) => u.id === t.usuarioId),
