@@ -14,7 +14,6 @@ export async function POST(req) {
   try {
     const body = await req.json();
     const { diaConciliacion = "Martes", data = [], calendario = {} } = body;
-    console.log("📅 Generando turnos para:", diaConciliacion);
 
     // 📌 Ruta de la plantilla según el día
     const plantillaPath = path.join(
