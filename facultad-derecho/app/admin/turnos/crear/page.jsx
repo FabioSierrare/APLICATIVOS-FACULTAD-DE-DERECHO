@@ -101,7 +101,7 @@ export default function prueba() {
       </h1>
       <div className=" flex md:justify-between flex-col mb-7">
         <h3 className="text-white font-semibold text-md mb-5">
-          SELECCIÓNE LA FECHA DEL TURNO
+          SELECCIÓNE LA FECHA DEL TURNO <span className="text-red-600">*</span>
         </h3>
         <div>
           <DatePickerWithBlocks
@@ -135,7 +135,7 @@ export default function prueba() {
 
       <div className="mb-10">
         <h3 className="text-white font-semibold text-md mb-5">
-          SELECCIONE EL ESTUDIANTE
+          SELECCIONE EL ESTUDIANTE <span className="text-red-600">*</span>
         </h3>
         <Combobox value={SelectPerson} onChange={setSelectedPerson}>
           <div className="relative">

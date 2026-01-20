@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Trash2,
   Plus,
@@ -9,7 +10,7 @@ import {
   ChevronDown,
   Calendar,
   CaseUpper,
-  Clock
+  Clock,
 } from "lucide-react";
 
 import useFetchData from "@/components/FetchData";
@@ -20,11 +21,12 @@ import { env } from "process";
 export default function AdvisorScheduler() {
   const calendario = useUltimoCalendario();
   const { data: asesores } = useFetchData(
-    "/api/Usuarios/GetUsuariosProfesores"
+    "/api/Usuarios/GetUsuariosProfesores",
   );
   const { data: consultorioProfesores } = useFetchData(
-    "/api/ConsultorioProfesores/GetConsultorioProfesores"
+    "/api/ConsultorioProfesores/GetConsultorioProfesores",
   );
+  const router = useRouter()
 
   // Datos simulados de asesores disponibles
   const AVAILABLE_ADVISORS = [
@@ -73,7 +75,7 @@ export default function AdvisorScheduler() {
             nombre: profesor,
             profesorId: cp.profesorId,
             diaSemana: cp.diaSemana,
-            jornada: cp.jornada
+            jornada: cp.jornada,
           });
         }
       });
@@ -88,7 +90,13 @@ export default function AdvisorScheduler() {
       ...prev,
       [day]: [
         ...prev[day],
-        { id: crypto.randomUUID(), nombre: "", profesorId: 0, diaSemana: "", jornada: "" },
+        {
+          id: crypto.randomUUID(),
+          nombre: "",
+          profesorId: 0,
+          diaSemana: "",
+          jornada: "",
+        },
       ],
     }));
   };
@@ -113,17 +121,17 @@ export default function AdvisorScheduler() {
               profesorId: parseInt(newAdvisorId),
               diaSemana: capitalizeFirstLetter(day.toLowerCase()),
             }
-          : slot
+          : slot,
       ),
     }));
   };
 
   const updateField = (day, slotId, field, value) => {
-    setSchedule(prev => ({
+    setSchedule((prev) => ({
       ...prev,
-      [day]: prev[day].map(slot => 
-        slot.id === slotId ? { ...slot, [field]: value } : slot
-      )
+      [day]: prev[day].map((slot) =>
+        slot.id === slotId ? { ...slot, [field]: value } : slot,
+      ),
     }));
   };
 
@@ -131,10 +139,11 @@ export default function AdvisorScheduler() {
   const handleSave = async () => {
     const contenido = Object.values(schedule)
       .flat()
+      .filter((slot) => slot.profesorId && slot.diaSemana)
       .map(({ profesorId, diaSemana, jornada }) => ({
         ProfesorId: profesorId,
         DiaSemana: diaSemana,
-        Jornada: !jornada ? "AM" : jornada
+        Jornada: jornada || "AM",
       }));
 
     const Enviar = {
@@ -142,19 +151,20 @@ export default function AdvisorScheduler() {
       Profesores: contenido,
     };
 
-    try{
-      const respuesta = await PutData("/api/ConsultorioProfesores/UpdateConsultorioProfesores", Enviar);
+    try {
+      const respuesta = await PutData(
+        "/api/ConsultorioProfesores/UpdateConsultorioProfesores",
+        Enviar,
+      );
 
       if (!respuesta) {
         throw new Error("Error al guardar al asesor");
       }
 
       alert("Asesores actualizados correctamente");
-    }catch(error){
+    } catch (error) {
       alert("Ocurrió un error al guardar al asesor");
     }
-
-    
   };
 
   if (
@@ -189,7 +199,7 @@ export default function AdvisorScheduler() {
 
           {/* Botón Acceso Directo: Registrar */}
           <button
-            onClick={() => alert("Ir a pantalla de registro...")}
+            onClick={() => router.push("/admin/usuarios/registro-asesores")}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-200"
           >
             <UserPlus className="w-4 h-4" />
@@ -256,7 +266,14 @@ export default function AdvisorScheduler() {
                         <div className="col-span-3 relative">
                           <select
                             value={slot.jornada}
-                            onChange={(e) => updateField(day, slot.id, 'jornada', e.target.value)}
+                            onChange={(e) =>
+                              updateField(
+                                day,
+                                slot.id,
+                                "jornada",
+                                e.target.value,
+                              )
+                            }
                             className="w-full appearance-none bg-indigo-50 border border-indigo-200 text-indigo-700 font-semibold rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none pr-7"
                           >
                             <option value="AM">AM</option>
@@ -285,7 +302,7 @@ export default function AdvisorScheduler() {
                   </button>
                 </div>
               </div>
-            )
+            ),
           )}
         </div>
       </main>

@@ -1,67 +1,36 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { postData } from "@/components/FetchPost";
+import useFetchData from "@/components/FetchData";
 import NavBar from "@/components/NavBar";
 import ComponentLink from "@/components/ComponentLink";
 import { usePathname, useRouter } from "next/navigation";
 import { User, LogIn } from "lucide-react";
-export default function RegistroFormulario() {
-  const [form, setForm] = useState({
-    Usuarios: {
-      Nombre: "",
-      Documento: "",
-      TipoDocumentoId: 0,
-      Correo: "",
-      Contrasena: "",
-      RolId: 2,
-    },
-    Consultorio: {
-      UsuarioId: 0,
-      ConsultorioId: 0,
-    },
-  });
-
-  const [mostrarPass, setMostrarPass] = useState(false);
+export default function RegistroAsesores() {
   const [enviando, setEnviando] = useState(false);
   const [mensaje, setMensaje] = useState(null);
-  const pathname = usePathname();
-  const [consultorio, setConsultorio] = useState([]);
-  const [tipoDocumento, setTipoDocumento] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [Form, setForm] = useState({
+    Nombre: "",
+    Documento: "",
+    TipoDocumentoId: 0,
+    Correo: "",
+    Contrasena: "",
+    RolId: 3,
+  });
+
+  const numericFields = ["TipoDocumentoId"];
+
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [consultoriosRes, tiposDocRes] = await Promise.all([
-          fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/Consultorios/GetConsultorios`
-          ).then((res) => res.json()),
-          fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/TiposDocumento/GetTiposDocumento`
-          ).then((res) => res.json()),
-        ]);
-
-        setConsultorio(consultoriosRes);
-        setTipoDocumento(tiposDocRes);
-      } catch (err) {
-        console.error("Error cargando datos", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const numericFields = ["ConsultorioId", "TipoDocumentoId"];
+  const { data: tipoDocumento } = useFetchData(
+    "/api/TiposDocumento/GetTiposDocumento"
+  );
 
   // 🔹 handler para objetos anidados
   // handler para objetos anidados con validación
-  const handleChange = (e, section) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Validación personalizada
     if (name === "Documento" && !/^[0-9]*$/.test(value)) {
       return; // ❌ bloquea todo lo que no sea número
     }
@@ -70,76 +39,58 @@ export default function RegistroFormulario() {
       return; // ❌ bloquea todo lo que no sea letra o espacio
     }
 
+    if (name === "Documento") {
+      setForm((prev) => ({
+        ...prev,
+        ["Contrasena"]: value,
+      }));
+    }
+
     setForm((prev) => ({
       ...prev,
-      [section]: {
-        ...prev[section],
-        [name]: numericFields.includes(name) ? Number(value) : value,
-      },
+      [name]:
+        name === "nombre"
+          ? value.toUpperCase()
+          : numericFields.includes(name)
+          ? Number(value)
+          : value,
     }));
   };
 
-  // 🔹 enviar datos
-  async function handleSubmit(e) {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // evita reload
+
+    setEnviando(true);
     setMensaje(null);
 
-    // Validación simple
-    if (
-      !form.Usuarios.Nombre ||
-      !form.Usuarios.Documento ||
-      !form.Usuarios.TipoDocumentoId ||
-      !form.Usuarios.Correo ||
-      !form.Usuarios.Contrasena ||
-      !form.Consultorio.ConsultorioId
-    ) {
+    try {
+      await postData("/api/Usuarios/PostUsuarios", Form);
+
+      setMensaje({
+        tipo: "ok",
+        texto: "Asesor registrado correctamente",
+      });
+
+      setForm({
+        Nombre: "",
+        Documento: "",
+        TipoDocumentoId: 0,
+        Correo: "",
+        Contrasena: "",
+        RolId: 3,
+      });
+    } catch (error) {
       setMensaje({
         tipo: "error",
-        texto: "Por favor completa todos los campos requeridos.",
+        texto: "Error al registrar el asesor",
       });
-      return;
-    }
-
-    try {
-      setEnviando(true);
-
-      const respuesta = await postData(
-        "/api/Usuarios/PostUsuarioEstudiante",
-        form
-      );
-
-      if (respuesta) {
-        setMensaje({ tipo: "ok", texto: "Datos guardados correctamente." });
-        // 🔹 reset limpio
-        setForm({
-          Usuarios: {
-            Nombre: "",
-            Documento: "",
-            TipoDocumentoId: 0,
-            Correo: "",
-            Contrasena: "",
-            RolId: 2,
-          },
-          Consultorio: {
-            UsuarioId: 0,
-            ConsultorioId: 0,
-          },
-        });
-        router.push("/admin/usuarios/informacion");
-      } else {
-        setMensaje({
-          tipo: "error",
-          texto: respuesta?.message || "Error al guardar los datos.",
-        });
-      }
-    } catch (err) {
-      setMensaje({ tipo: "error", texto: err?.message || "Error inesperado" });
     } finally {
       setEnviando(false);
     }
-  }
+  };
 
-  if (!consultorio || !tipoDocumento) {
+  // 🔹 enviar datos
+  if (!tipoDocumento) {
     return (
       <p className="text-center mt-10 text-primary">Cargando formulario...</p>
     );
@@ -161,7 +112,7 @@ export default function RegistroFormulario() {
                 </p>
                 <div>
                   <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
-                    Registro de estudiantes
+                    Registro de asesores
                   </h1>
                   <p className="text-sm text-gray-600 mt-1">
                     Completa la información para continuar.{" "}
@@ -188,8 +139,8 @@ export default function RegistroFormulario() {
                     name="Nombre"
                     type="text"
                     required
-                    value={form.Usuarios.Nombre}
-                    onChange={(e) => handleChange(e, "Usuarios")}
+                    value={Form.Nombre}
+                    onChange={handleChange}
                     autoCapitalize="none"
                     placeholder="Nombre completo"
                     className="mt-1 block w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-gray-200"
@@ -211,8 +162,8 @@ export default function RegistroFormulario() {
                     inputMode="numeric"
                     autoCapitalize="none"
                     required
-                    value={form.Usuarios.Documento}
-                    onChange={(e) => handleChange(e, "Usuarios")}
+                    value={Form.Documento}
+                    onChange={handleChange}
                     placeholder="Número de documento"
                     className="mt-1 block w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-gray-200"
                   />
@@ -230,18 +181,20 @@ export default function RegistroFormulario() {
                     id="tipoDocumento"
                     name="TipoDocumentoId"
                     required
-                    value={form.Usuarios.TipoDocumentoId}
-                    onChange={(e) => handleChange(e, "Usuarios")}
+                    value={Form.TipoDocumentoId}
+                    onChange={handleChange}
                     className="mt-1 block w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:outline-none focus:ring-4 focus:ring-gray-200"
                   >
                     <option value={0} disabled>
                       Selecciona una opción
                     </option>
-                    {tipoDocumento.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.nombre}
-                      </option>
-                    ))}
+                    {tipoDocumento
+                      .filter((t) => t.nombre != "Tarjeta de Identidad")
+                      .map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.nombre}
+                        </option>
+                      ))}
                   </select>
                 </div>
 
@@ -259,69 +212,11 @@ export default function RegistroFormulario() {
                     type="email"
                     required
                     autoCapitalize="none"
-                    value={form.Usuarios.Correo}
-                    onChange={(e) => handleChange(e, "Usuarios")}
+                    value={Form.Correo}
+                    onChange={handleChange}
                     placeholder="tucorreo@universidadmayor.edu.co"
                     className="mt-1 block w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-gray-200"
                   />
-                </div>
-
-                {/* Contraseña */}
-                <div className="col-span-1">
-                  <label
-                    htmlFor="contrasena"
-                    className="block text-sm font-medium text-gray-800"
-                  >
-                    Contraseña <span className="text-red-500">*</span>
-                  </label>
-                  <div className="mt-1 relative">
-                    <input
-                      id="contrasena"
-                      name="Contrasena"
-                      type={mostrarPass ? "text" : "password"}
-                      required
-                      minLength={8}
-                      autoCapitalize="none"
-                      value={form.Usuarios.Contrasena}
-                      onChange={(e) => handleChange(e, "Usuarios")}
-                      placeholder="Mínimo 8 caracteres"
-                      className="block w-full rounded-xl border border-gray-300 bg-white px-3 py-2 pr-12 text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-gray-200"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setMostrarPass((v) => !v)}
-                      className="absolute inset-y-0 right-0 px-3 text-sm text-gray-600 hover:text-gray-900"
-                    >
-                      {mostrarPass ? "Ocultar" : "Mostrar"}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Consultorio */}
-                <div className="col-span-1">
-                  <label
-                    htmlFor="consultorio"
-                    className="block text-sm font-medium text-gray-800"
-                  >
-                    Consultorio <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    id="consultorio"
-                    name="ConsultorioId"
-                    required
-                    value={form.Consultorio.ConsultorioId}
-                    onChange={(e) => handleChange(e, "Consultorio")}
-                    className="mt-1 block w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:outline-none focus:ring-4 focus:ring-gray-200"
-                  >
-                    <option value={0} disabled>
-                      Selecciona un consultorio
-                    </option>
-                    {consultorio.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.nombre}
-                      </option>
-                    ))}
-                  </select>
                 </div>
 
                 {/* Mensaje */}
@@ -344,22 +239,7 @@ export default function RegistroFormulario() {
                 <div className="md:col-span-2 flex items-center justify-end gap-3 pt-2">
                   <button
                     type="reset"
-                    onClick={() =>
-                      setForm({
-                        Usuarios: {
-                          Nombre: "",
-                          Documento: "",
-                          TipoDocumentoId: 0,
-                          Correo: "",
-                          Contrasena: "",
-                          RolId: 2,
-                        },
-                        Consultorio: {
-                          UsuarioId: 0,
-                          ConsultorioId: 0,
-                        },
-                      })
-                    }
+                    onClick={() => handleSubmit}
                     className="cursor-pointer rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
                     Limpiar

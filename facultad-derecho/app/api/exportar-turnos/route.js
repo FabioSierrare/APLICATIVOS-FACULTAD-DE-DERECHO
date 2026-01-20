@@ -111,6 +111,12 @@ export async function POST(req) {
         );
       }
 
+      sheet.getCell(
+        "A5"
+      ).value = `LISTADO DE ASIGNACION DE TURNOS PARA ESTUDIANTES  PERIODO  ${anio} - ${semestre.toUpperCase()}`;
+
+      sheet.getCell("A6").value = `SEMANA No. ${i + 1}`;
+
       // Procesar cada día de la semana
       turnosPorSemana[i].forEach((dia) => {
         ["AM", "PM"].forEach((jornada) => {
@@ -125,14 +131,11 @@ export async function POST(req) {
             // Escribir en Excel
             sheet.getCell(`B${fila}`).value = turno.Estudiante.toUpperCase();
             sheet.getCell(`C${fila}`).value = turno.Consultorio;
-            sheet.getCell(`E${fila}`).value = turno.fechaTurno.replace(",", "").toUpperCase();
+            sheet.getCell(`E${fila}`).value = turno.fechaTurno
+              .replace(",", "")
+              .toUpperCase();
             sheet.getCell(`F${fila}`).value = turno.jornada.toUpperCase();
-            if(fila === rango[1]){
-              sheet.getCell(
-              "A5"
-            ).value = `LISTADO DE ASIGNACION DE TURNOS PARA ESTUDIANTES  PERIODO  ${anio} - ${semestre.toUpperCase()}`;
-
-            sheet.getCell("A6").value = `SEMANA No. ${i + 1}`;
+            if (fila === rango[1]) {
             }
 
             // Guardar en historial
