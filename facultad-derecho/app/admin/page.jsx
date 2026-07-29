@@ -62,14 +62,14 @@ export default function CalendarioAbogadasUI() {
     ConfiguracionDias: [],
   });
 
-  const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+  const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "N/A"];
   const semestreOptions = [
-    { value: "S1", label: "Primer Semestre" },
-    { value: "S2", label: "Segundo Semestre" },
+    { value: "S1", label: "Primer" },
+    { value: "S2", label: "Segundo" },
   ];
 
   const [configDias, setConfigDias] = useState(
-    diasSemana.map((d) => ({ dia: d, maxTurnosAM: 0, maxTurnosPM: 0 })),
+    diasSemana.filter((d) => d !== "N/A").map((d) => ({ dia: d, maxTurnosAM: 0, maxTurnosPM: 0 })),
   );
 
   // ======= FETCH CONSULTORIOS =======
@@ -281,7 +281,7 @@ export default function CalendarioAbogadasUI() {
     return new Date(year, month - 1, day);
   };
 
-  
+
 
   // ======= FERIADOS =======
   useEffect(() => {
@@ -293,14 +293,12 @@ export default function CalendarioAbogadasUI() {
       const resp = await fetch(
         `https://date.nager.at/api/v3/PublicHolidays/${inicio.getFullYear()}/CO`,
       );
-      console.log(inicio)
       const festivos = await resp.json();
-      console.log(festivos)
 
       const idxConciliacion = diasSemana.indexOf(diaConciliacion);
       const filtrados = festivos.filter((f) => {
         const fDate = parseFechaLocal(f.date);
-        
+
 
         return (
           fDate >= inicio &&
@@ -324,6 +322,8 @@ export default function CalendarioAbogadasUI() {
         "/api/Calendarios/PostTodoForm",
         FormularioCalendarios,
       );
+
+      console.log(respuesta)
       if (!respuesta) {
         setErrorMensaje(respuesta?.message || "Error al guardar los datos");
         setSubmitting(false);
@@ -351,6 +351,7 @@ export default function CalendarioAbogadasUI() {
   }, [semestre, rangoEvento, diaConciliacion, totalTurnosSemana]);
 
   // ======= UI =======
+
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 to-white rounded-2xl">
       {/* Top Bar */}
@@ -370,7 +371,7 @@ export default function CalendarioAbogadasUI() {
                 {/* Semestre */}
                 <div className="col-span-3 md:col-span-1">
                   <Label>
-                    Semestre<span className="text-red-600">*</span>
+                    Semestre del año<span className="text-red-600">*</span>
                   </Label>
                   <Select value={semestre} onValueChange={setSemestre}>
                     <SelectTrigger className="mt-1">
@@ -469,8 +470,8 @@ export default function CalendarioAbogadasUI() {
 
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {configDias
-                      .filter((d) => d.dia !== diaConciliacion)
-                      .map((dia) => (
+                      .filter((d) => d.dia !== diaConciliacion || d.dia !== "N/A")
+                      .map((dia) =>(
                         <Card
                           key={dia.dia}
                           className="shadow-none border-dashed"

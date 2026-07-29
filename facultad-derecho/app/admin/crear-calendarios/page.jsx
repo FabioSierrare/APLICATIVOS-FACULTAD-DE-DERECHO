@@ -1,11 +1,21 @@
 "use client";
+
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import useFetchData from "@/components/FetchData";
-import { postData } from "@/components/FetchPost";
-export const runtime = "edge";
+import {
+  CalendarDays,
+  Building2,
+  CheckCircle2,
+  AlertTriangle,
+  ChevronRight,
+  Info,
+  RotateCcw,
+  LayoutDashboard,
+  List,
+  AlarmClock,
+} from "lucide-react";
 
-// --- Optional shared UI libs (available in this environment) ---
+// --- UI COMPONENTS (Shadcn/ui & Estilos Originales) ---
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -24,357 +34,272 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import {
-  CalendarDays,
-  Building2,
-  Gavel,
-  AlarmClock,
-  CheckCircle2,
-  AlertTriangle,
-  ChevronRight,
-  Info,
-} from "lucide-react";
 
-// --- Project helpers (replace with your real hooks/services) ---
-// If you already have these in your project, keep your originals and remove the mocks.
-// import useFetchData from "@/components/FetchData";
-// import { postData } from "@/components/FetchPost";
+// --- Hooks Mockeados (Reemplazar por los reales) ---
+// import useFetchData from "@/components/FetchData"; // No se usaba en el ejemplo
+import { useUltimoCalendario } from "@/components/UltimoCalendario";
+import useFetchData from "@/components/FetchData";
+// import { postData } from "@/components/FetchPost"; // No se usaba en el ejemplo
 
-// Mocked service (delete if you have real endpoints)
-
-export default function CalendarioAbogadasUI() {
-  // ======= STATE =======
+export default function EditarCalendario({ id }) {
   const router = useRouter();
-  const [rangoEvento, setRangoEvento] = useState({ inicio: "", fin: "" });
-  const [diaConciliacion, setDiaConciliacion] = useState("");
-  const [semestre, setSemestre] = useState("");
-  const [festivosFiltrados, setFestivosFiltrados] = useState([]);
-  const [totalFestivos, setTotalFestivos] = useState(0);
-  const [errorMensaje, setErrorMensaje] = useState("");
-  const [submitting, setSubmitting] = useState(false);
 
-  const [FormularioCalendarios, setFormularioCalendario] = useState({
-    Calendarios: {},
-    LimitesTurnosConsultorio: [{ ConsultorioId: 0, LimiteTurnos: 0 }],
-    ConfiguracionDias: [],
+  const calendario = useUltimoCalendario();
+  const ConfiguracionDias = useFetchData("")
+  // --- FUNCIÓN AUXILIAR PARA FECHAS ---
+  // Convierte una fecha de la BDD a formato YYYY-MM-DD para el input
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    // Aseguramos que sea una fecha válida antes de formatear
+    return isNaN(date.getTime()) ? "" : date.toISOString().split("T")[0];
+  };
+
+  // ==========================================
+  // 1. ESTADOS (General y Listas)
+  // ==========================================
+
+  // A. Configuración Principal (Inputs superiores)
+  // CORRECCIÓN: Unificamos nombres de variables (camelCase) para que coincidan con los inputs
+  const [mainConfig, setMainConfig] = useState({
+    semestre: "", // Antes opcionPrincipal / Semestre
+    fechaInicio: "",
+    fechaFin: "",
+    diaConciliacion: "", // Antes opcionSecundaria / DiaConciliacion
+    anio: "", // Agregado para mantener consistencia con la carga
+    estado: "", // Agregado
+    id: null, // Agregado
   });
 
-  const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+  const diasSemana = [
+    "Lunes",
+    "Martes",
+    "Miércoles",
+    "Jueves",
+    "Viernes",
+    "N/A",
+  ];
   const semestreOptions = [
-    { value: "S1", label: "Primer Semestre" },
-    { value: "S2", label: "Segundo Semestre" },
+    { value: "S1", label: "Primer" },
+    { value: "S2", label: "Segundo" },
   ];
 
   const [configDias, setConfigDias] = useState(
-    diasSemana.map((d) => ({ dia: d, maxTurnosAM: 0, maxTurnosPM: 0 })),
+    diasSemana
+      .filter((d) => d !== "N/A")
+      .map((d) => ({ dia: d, maxTurnosAM: 0, maxTurnosPM: 0 })),
   );
+  // B. Lista para TAB 1 (Ej: Días, Categorías, etc - Grid de Cards)
+  const [gridItems, setGridItems] = useState([
+    // Mantenemos los datos dummy iniciales para que se vea el diseño
+    { id: "Item 1", valA: 0, valB: 0 },
+    { id: "Item 2", valA: 0, valB: 0 },
+    { id: "Item 3", valA: 0, valB: 0 },
+    { id: "Item 4", valA: 0, valB: 0 },
+    { id: "Item 5", valA: 0, valB: 0 },
+  ]);
 
-  // ======= FETCH CONSULTORIOS =======
-  const { data: consultorio, loading: loadingConsultorios } = useFetchData(
-    "/api/Consultorios/GetConsultorios",
-  );
-  const [consultorios, setConsultorios] = useState([]);
+  // C. Lista para TAB 2 (Ej: Consultorios, Entidades - Lista Vertical)
+  const [listItems, setListItems] = useState([]);
 
-  useEffect(() => {
-    if (Array.isArray(consultorio)) {
-      const consultoriosFormateados = consultorio.map((c) => ({
-        id: c.id,
-        nombre: c.nombre,
-        turnos: 3,
-      }));
+  // D. Estados de UI
+  const [errorMensaje, setErrorMensaje] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-      setConsultorios(consultoriosFormateados);
-    }
-  }, [consultorio]);
-
-  useEffect(() => {
-    setFormularioCalendario((prev) => ({
-      ...prev,
-      LimitesTurnosConsultorio: consultorios.map((c) => ({
-        CalendarioId: 0,
-        ConsultorioId: c.id,
-        LimiteTurnos: c.turnos,
-      })),
-    }));
-  }, [consultorios]);
-
-  // ======= LINK CALENDARIOS to form =======
-  useEffect(() => {
-    const inicio = rangoEvento.inicio ? new Date(rangoEvento.inicio) : null;
-    const fin = rangoEvento.fin ? new Date(rangoEvento.fin) : null;
-
-    setFormularioCalendario((prev) => ({
-      ...prev,
-      Calendarios: {
-        ...prev.Calendarios,
-        Anio: inicio?.getFullYear?.() || null,
-        Semestre: semestre || null,
-        FechaInicio: inicio || null,
-        FechaFin: fin || null,
-        DiaConciliacion: diaConciliacion || null,
-        Estado: "Activo",
-      },
-    }));
-  }, [rangoEvento, diaConciliacion, semestre]);
-
-  // ======= CONFIG DIAS -> form =======
-  useEffect(() => {
-    setFormularioCalendario((prev) => ({
-      ...prev,
-      ConfiguracionDias: configDias.map((d) => ({
-        DiaSemana: d.dia,
-        CalendarioId: 0,
-        MaxTurnosAM: d.maxTurnosAM,
-        MaxTurnosPM: d.maxTurnosPM,
-      })),
-    }));
-  }, [configDias]);
-
-  // ======= HANDLERS =======
-  const handleRangoChange = (e) => {
-    const { name, value } = e.target;
-    setRangoEvento((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleConfigDiaChange = (diaSeleccionado, campo, valor) => {
-    setConfigDias((prev) =>
-      prev.map((dia) =>
-        dia.dia === diaSeleccionado
-          ? {
-              ...dia,
-              [campo]: Number.isFinite(parseInt(valor)) ? parseInt(valor) : 0,
-            }
-          : dia,
-      ),
-    );
-  };
-
-  const handleConsultorioChange = (id, field, value) => {
-    setConsultorios((prev) =>
-      prev.map((cons) => (cons.id === id ? { ...cons, [field]: value } : cons)),
-    );
-  };
+  // ==========================================
+  // 2. FETCH DE DATOS (Carga inicial)
+  // ==========================================
 
   useEffect(() => {
-    if (!diaConciliacion) return;
-    setConfigDias((prev) =>
-      prev.map((d) =>
-        d.dia === diaConciliacion
-          ? { ...d, maxTurnosAM: 0, maxTurnosPM: 0 }
-          : d,
-      ),
-    );
-  }, [diaConciliacion]);
-
-  // ======= VALIDATIONS & CALCS =======
-  const validarFormulario = () => {
-    const { Calendarios, LimitesTurnosConsultorio, ConfiguracionDias } =
-      FormularioCalendarios;
-
-    if (
-      !Calendarios?.Anio ||
-      !Calendarios?.Semestre ||
-      !Calendarios?.FechaInicio ||
-      !Calendarios?.FechaFin ||
-      !Calendarios?.DiaConciliacion
-    ) {
-      setErrorMensaje("Por favor, completa todos los campos del calendario.");
-      return false;
-    }
-
-    if (Calendarios.FechaFin < Calendarios.FechaInicio) {
-      setErrorMensaje(
-        "La fecha de fin debe ser igual o posterior a la fecha de inicio.",
-      );
-      return false;
-    }
-
-    for (const c of LimitesTurnosConsultorio) {
-      if (!c.ConsultorioId || c.LimiteTurnos <= 0) {
-        setErrorMensaje(
-          "Cada consultorio debe tener un límite de turnos mayor a 0.",
-        );
-        return false;
-      }
-    }
-
-    for (const d of ConfiguracionDias) {
-      const esConciliacion = d.DiaSemana === diaConciliacion;
-
-      if (
-        !d.DiaSemana ||
-        d.MaxTurnosAM < 0 ||
-        d.MaxTurnosPM < 0 ||
-        (!esConciliacion && !d.MaxTurnosAM && !d.MaxTurnosPM) // 👈 solo exigir en los demás días
-      ) {
-        setErrorMensaje(
-          "Cada día debe tener un nombre y al menos 1 turno total en AM o PM (excepto el día de conciliación).",
-        );
-        return false;
-      }
-    }
-
-    setErrorMensaje("");
-    return true;
-  };
-
-  const isFormularioValido = useMemo(() => {
-    const { Calendarios, LimitesTurnosConsultorio, ConfiguracionDias } =
-      FormularioCalendarios;
-    const inicioValido =
-      Calendarios?.FechaInicio instanceof Date &&
-      !isNaN(Calendarios?.FechaInicio);
-    const finValido =
-      Calendarios?.FechaFin instanceof Date && !isNaN(Calendarios?.FechaFin);
-    const basicos =
-      Boolean(Calendarios?.Anio) &&
-      Boolean(Calendarios?.Semestre) &&
-      inicioValido &&
-      finValido &&
-      Boolean(Calendarios?.DiaConciliacion);
-    const consultoriosOk =
-      Array.isArray(LimitesTurnosConsultorio) &&
-      LimitesTurnosConsultorio.every((c) => c.LimiteTurnos > 0);
-    const diasOk =
-      Array.isArray(ConfiguracionDias) &&
-      ConfiguracionDias.every(
-        (d) => d.DiaSemana && d.MaxTurnosAM >= 0 && d.MaxTurnosPM >= 0,
-      );
-    return basicos && consultoriosOk && diasOk;
-  }, [FormularioCalendarios]);
-
-  // Weeks and totals
-  const diasConfigurables = configDias.filter((d) => d.dia !== diaConciliacion);
-  const totalTurnosSemana = diasConfigurables.reduce(
-    (total, dia) => total + (dia.maxTurnosAM || 0) + (dia.maxTurnosPM || 0),
-    0,
-  );
-
-  const [totalSemanas, setTotalSemanas] = useState(0);
-  useEffect(() => {
-    if (rangoEvento.inicio && rangoEvento.fin) {
-      const inicio = new Date(rangoEvento.inicio);
-      const fin = new Date(rangoEvento.fin);
-      if (fin >= inicio) {
-        const diffDias = Math.ceil((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
-        const semanas = Math.ceil(diffDias / 7);
-        setTotalSemanas(semanas);
-      } else {
-        setTotalSemanas(0);
-      }
-    } else {
-      setTotalSemanas(0);
-    }
-  }, [rangoEvento.inicio, rangoEvento.fin]);
-
-  const totalTurnosReales = Math.max(
-    0,
-    totalSemanas * totalTurnosSemana - totalFestivos - totalSemanas,
-  );
-
-  const parseFechaLocal = (value) => {
-    if (!value) return null;
-    const [year, month, day] = value.split("-").map(Number);
-    return new Date(year, month - 1, day);
-  };
-
-  
-
-  // ======= FERIADOS =======
-  useEffect(() => {
-    const obtenerFestivos = async () => {
-      if (!rangoEvento.inicio || !rangoEvento.fin) return;
-      const inicio = parseFechaLocal(rangoEvento.inicio);
-      const fin = parseFechaLocal(rangoEvento.fin);
-
-      const resp = await fetch(
-        `https://date.nager.at/api/v3/PublicHolidays/${inicio.getFullYear()}/CO`,
-      );
-      console.log(inicio)
-      const festivos = await resp.json();
-      console.log(festivos)
-
-      const idxConciliacion = diasSemana.indexOf(diaConciliacion);
-      const filtrados = festivos.filter((f) => {
-        const fDate = parseFechaLocal(f.date);
-        
-
-        return (
-          fDate >= inicio &&
-          fDate <= fin &&
-          (idxConciliacion === -1 || fDate.getDay() !== idxConciliacion + 1)
-        );
+    if (calendario) {
+      // CORRECCIÓN IMPORTANTE:
+      // 1. Usamos los nombres de variables unificados (semestre, fechaInicio...)
+      // 2. Formateamos las fechas a string YYYY-MM-DD en lugar de usar new Date() directo.
+      setMainConfig({
+        anio: calendario.anio,
+        diaConciliacion: calendario.diaConciliacion
+          ? String(calendario.diaConciliacion)
+          : "", // Asegurar que sea string para el Select
+        fechaInicio: formatDateForInput(calendario.fechaInicio),
+        fechaFin: formatDateForInput(calendario.fechaFin),
+        estado: calendario.estado,
+        id: calendario.id,
+        semestre: calendario.semestre || "",
       });
-      setFestivosFiltrados(filtrados);
-      setTotalFestivos(filtrados.length);
-    };
-    obtenerFestivos();
-  }, [rangoEvento.inicio, rangoEvento.fin, diaConciliacion]);
 
-  // ======= SUBMIT =======
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validarFormulario()) return;
-    try {
-      setSubmitting(true);
-      const respuesta = await postData(
-        "/api/Calendarios/PostTodoForm",
-        FormularioCalendarios,
-      );
-      if (!respuesta) {
-        setErrorMensaje(respuesta?.message || "Error al guardar los datos");
-        setSubmitting(false);
-        return;
+      // Opcional: Si 'calendario' trae detalles, podrías actualizar gridItems aquí:
+      // if (calendario.detalles) setGridItems(calendario.detalles);
+    }
+  }, [calendario]);
+
+  // ==========================================
+  // 3. HANDLERS
+  // ==========================================
+
+  const handleMainConfigChange = (field, value) => {
+    setMainConfig((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleGridItemChange = (id, field, value) => {
+    // Aseguramos que el valor sea un número, si es NaN se usa 0
+    const numericValue = value === "" ? 0 : parseInt(value, 10);
+    setGridItems((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, [field]: isNaN(numericValue) ? 0 : numericValue }
+          : item,
+      ),
+    );
+  };
+
+  const handleListItemChange = (id, value) => {
+    const numericValue = value === "" ? 0 : parseInt(value, 10);
+    setListItems((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, valor: isNaN(numericValue) ? 0 : numericValue }
+          : item,
+      ),
+    );
+  };
+
+  // ==========================================
+  // 4. CÁLCULOS & VALIDACIONES (Lógica Reactiva)
+  // ==========================================
+
+  // Cálculos para el Panel Derecho (Resumen)
+  const resumen = useMemo(() => {
+    // Agregamos protección (|| 0) por si algún valor viene nulo
+    const totalGrid = gridItems.reduce(
+      (acc, i) => acc + (i.valA || 0) + (i.valB || 0),
+      0,
+    );
+    const totalList = listItems.reduce((acc, i) => acc + (i.valor || 0), 0);
+
+    let dias = 0;
+    // Solo calculamos si las fechas son strings válidos no vacíos
+    if (mainConfig.fechaInicio && mainConfig.fechaFin) {
+      const d1 = new Date(mainConfig.fechaInicio);
+      const d2 = new Date(mainConfig.fechaFin);
+      // Validamos que las fechas sean objetos Date válidos antes de restar
+      if (!isNaN(d1.getTime()) && !isNaN(d2.getTime()) && d2 >= d1) {
+        dias = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24));
       }
+    }
+
+    return {
+      metric1: dias,
+      metric2: totalList,
+      metric3: totalGrid,
+      totalGlobal: totalGrid * (dias > 0 ? dias : 1), // Evitar multiplicar por 0 si no hay fechas
+    };
+  }, [mainConfig.fechaInicio, mainConfig.fechaFin, gridItems, listItems]);
+
+  // Progreso Visual (Barra de carga)
+  const progreso = useMemo(() => {
+    let p = 0;
+    // Usamos las nuevas keys del estado
+    if (mainConfig.semestre) p += 25;
+    if (mainConfig.fechaInicio && mainConfig.fechaFin) p += 25;
+    // Ajustamos la lógica de progreso según tus necesidades reales
+    if (mainConfig.diaConciliacion) p += 25;
+    const gridHasData = gridItems.some((i) => i.valA > 0 || i.valB > 0);
+    if (gridHasData) p += 25;
+
+    return p;
+  }, [mainConfig, gridItems]);
+
+  const isFormValido = useMemo(() => {
+    // Validamos usando las keys correctas
+    return (
+      mainConfig.semestre &&
+      mainConfig.fechaInicio &&
+      mainConfig.fechaFin &&
+      mainConfig.diaConciliacion
+    );
+  }, [mainConfig]);
+
+  // ==========================================
+  // 5. SUBMIT
+  // ==========================================
+  const handleSubmit = async () => {
+    if (!isFormValido) {
+      setErrorMensaje("Por favor completa los campos requeridos.");
+      return;
+    }
+
+    setSubmitting(true);
+    setErrorMensaje(""); // Limpiar errores previos
+    try {
+      const payload = {
+        ...mainConfig,
+        detalles: gridItems,
+        externos: listItems,
+      };
+
+      // Simulación de espera
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // const res = await postData("/api/...", payload);
+      // if (!res) throw new Error("Error...");
+
+      alert("Proceso completado correctamente (Simulado)");
+      // router.push("/admin/...");
+    } catch (error) {
+      console.error(error);
+      setErrorMensaje("Error al guardar la configuración.");
+    } finally {
       setSubmitting(false);
-      // Success UI feedback is below; in your app you can redirect:
-      // router.push("/admin/calendarios-creados");
-      alert("Calendario guardado correctamente");
-      router.push("/admin/calendarios-creados");
-    } catch (err) {
-      setSubmitting(false);
-      setErrorMensaje(err?.message || "Error inesperado");
     }
   };
 
-  // ======= PROGRESS for basic completion =======
-  const progreso = useMemo(() => {
-    let puntos = 0;
-    if (semestre) puntos += 25;
-    if (rangoEvento.inicio && rangoEvento.fin) puntos += 25;
-    if (diaConciliacion) puntos += 25;
-    if (totalTurnosSemana > 0) puntos += 25;
-    return puntos;
-  }, [semestre, rangoEvento, diaConciliacion, totalTurnosSemana]);
+  // ==========================================
+  // 6. RENDER (DISEÑO EXACTO)
+  // ==========================================
 
-  // ======= UI =======
+  if (!calendario) {
+    // Un estado de carga simple que respeta el layout
+    return (
+      <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 to-white rounded-2xl p-8 flex items-center justify-center">
+        <p className="text-slate-500">Cargando información del calendario...</p>
+      </div>
+    );
+  }
+
+  // CORRECCIÓN: Eliminado el error de sintaxis "console.l;" que había aquí.
+
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 to-white rounded-2xl">
-      {/* Top Bar */}
-
       <main className="mx-auto max-w-full px-4 py-8 grid gap-6 lg:grid-cols-3">
-        {/* Left Column: Form */}
+        {/* COLUMNA IZQUIERDA: FORMULARIO */}
         <div className="lg:col-span-2 space-y-6">
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CalendarDays className="h-5 w-5" /> Configuración del
-                calendario
+                {/* Icono Principal */}
+                <CalendarDays className="h-5 w-5" />
+                Configuración del Módulo{" "}
+                {mainConfig.anio ? `- ${mainConfig.anio}` : ""}
               </CardTitle>
             </CardHeader>
+
             <CardContent className="space-y-6">
+              {/* FILA 1: Inputs Principales (Grid de 3) */}
               <div className="grid gap-4 md:grid-cols-3">
-                {/* Semestre */}
+                {/* Select Principal */}
                 <div className="col-span-3 md:col-span-1">
                   <Label>
-                    Semestre<span className="text-red-600">*</span>
+                    Semestre del año <span className="text-red-600">*</span>
                   </Label>
-                  <Select value={semestre} onValueChange={setSemestre}>
+                  {/* CORRECCIÓN: value={mainConfig.semestre} y handle...("semestre", v) */}
+                  <Select
+                    value={mainConfig.semestre}
+                    onValueChange={(v) => handleMainConfigChange("semestre", v)}
+                  >
                     <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Seleccione semestre" />
+                      <SelectValue placeholder="Seleccionar..." />
                     </SelectTrigger>
                     <SelectContent>
                       {semestreOptions.map((op) => (
@@ -385,46 +310,55 @@ export default function CalendarioAbogadasUI() {
                     </SelectContent>
                   </Select>
                 </div>
-                {/* Inicio */}
+
+                {/* Fecha Inicio */}
                 <div>
                   <Label>
-                    Fecha de inicio<span className="text-red-600">*</span>
+                    Fecha de inicio <span className="text-red-600">*</span>
                   </Label>
                   <Input
                     type="date"
-                    name="inicio"
-                    value={rangoEvento.inicio}
-                    onChange={handleRangoChange}
+                    // CORRECCIÓN: Ahora recibe un string YYYY-MM-DD correctamente
+                    value={mainConfig.fechaInicio}
+                    onChange={(e) =>
+                      handleMainConfigChange("fechaInicio", e.target.value)
+                    }
                     className="mt-1"
                   />
                 </div>
-                {/* Fin */}
+
+                {/* Fecha Fin */}
                 <div>
                   <Label>
-                    Fecha de fin<span className="text-red-600">*</span>
+                    Fecha de fin <span className="text-red-600">*</span>
                   </Label>
                   <Input
                     type="date"
-                    name="fin"
-                    value={rangoEvento.fin}
-                    onChange={handleRangoChange}
+                    // CORRECCIÓN: Ahora recibe un string YYYY-MM-DD correctamente
+                    value={mainConfig.fechaFin}
+                    onChange={(e) =>
+                      handleMainConfigChange("fechaFin", e.target.value)
+                    }
                     className="mt-1"
                   />
                 </div>
               </div>
 
+              {/* FILA 2: Opción Secundaria y Progreso */}
               <div className="grid gap-4 md:grid-cols-2">
-                {/* Día de conciliación */}
                 <div>
                   <Label>
-                    Día de conciliación<span className="text-red-600">*</span>
+                    Dia de conciliación<span className="text-red-600">*</span>
                   </Label>
+                  {/* CORRECCIÓN: value={mainConfig.diaConciliacion} y handle...("diaConciliacion", v) */}
                   <Select
-                    value={diaConciliacion}
-                    onValueChange={setDiaConciliacion}
+                    value={mainConfig.diaConciliacion}
+                    onValueChange={(v) =>
+                      handleMainConfigChange("diaConciliacion", v)
+                    }
                   >
                     <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Seleccione un día laboral" />
+                      <SelectValue placeholder="Seleccionar opción..." />
                     </SelectTrigger>
                     <SelectContent>
                       {diasSemana.map((d) => (
@@ -436,7 +370,7 @@ export default function CalendarioAbogadasUI() {
                   </Select>
                 </div>
 
-                {/* Progreso de configuración */}
+                {/* Barra de Progreso */}
                 <div className="flex flex-col justify-end">
                   <div className="flex items-center justify-between mb-1">
                     <Label className="text-slate-700">Progreso</Label>
@@ -446,113 +380,106 @@ export default function CalendarioAbogadasUI() {
                 </div>
               </div>
 
-              <Tabs defaultValue="dias">
+              {/* TABS DE CONFIGURACIÓN DETALLADA */}
+              <Tabs defaultValue="tab1">
                 <TabsList className="grid grid-cols-2 w-full">
-                  <TabsTrigger value="dias">
-                    Días laborales<span className="text-red-600">*</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="consultorios">
-                    Consultorios<span className="text-red-600">*</span>
-                  </TabsTrigger>
+                  <TabsTrigger value="tab1">Dias laborales</TabsTrigger>
+                  <TabsTrigger value="tab2">Consultorios</TabsTrigger>
                 </TabsList>
-                {/* DÍAS */}
-                <TabsContent value="dias" className="space-y-4">
+
+                {/* TAB 1: Grid de Tarjetas (Estilo "Días") */}
+                <TabsContent value="tab1" className="space-y-4">
                   <Alert className="bg-amber-50 border-amber-200">
                     <Info className="h-4 w-4" />
-                    <AlertTitle>Configura los turnos por día</AlertTitle>
+                    <AlertTitle>Información</AlertTitle>
                     <AlertDescription>
-                      Los turnos del día de conciliación (
-                      <b>{diaConciliacion || "no seleccionado"}</b>) no se
-                      contabilizan para la atención.
+                      Ajusta los valores individuales para cada elemento de la
+                      cuadrícula.
                     </AlertDescription>
                   </Alert>
 
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {configDias
-                      .filter((d) => d.dia !== diaConciliacion)
-                      .map((dia) => (
-                        <Card
-                          key={dia.dia}
-                          className="shadow-none border-dashed"
-                        >
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-base font-semibold tracking-tight">
-                              {dia.dia}
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            <div>
-                              <Label>Turnos AM</Label>
-                              <Input
-                                type="number"
-                                min={0}
-                                max={20}
-                                value={dia.maxTurnosAM}
-                                onChange={(e) =>
-                                  handleConfigDiaChange(
-                                    dia.dia,
-                                    "maxTurnosAM",
-                                    e.target.value,
-                                  )
-                                }
-                                className="mt-1"
-                              />
-                            </div>
-                            <div>
-                              <Label>Turnos PM</Label>
-                              <Input
-                                type="number"
-                                min={0}
-                                max={20}
-                                value={dia.maxTurnosPM}
-                                onChange={(e) =>
-                                  handleConfigDiaChange(
-                                    dia.dia,
-                                    "maxTurnosPM",
-                                    e.target.value,
-                                  )
-                                }
-                                className="mt-1"
-                              />
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                    {gridItems.map((item) => (
+                      <Card key={item.id} className="shadow-none border-dashed">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-base font-semibold tracking-tight">
+                            {item.id}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div>
+                            <Label>Parámetro A</Label>
+                            {/* CORRECCIÓN: value={item.valA || ''} evita warning si es 0 */}
+                            <Input
+                              type="number"
+                              min={0}
+                              value={item.valA}
+                              onChange={(e) =>
+                                handleGridItemChange(
+                                  item.id,
+                                  "valA",
+                                  e.target.value,
+                                )
+                              }
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label>Parámetro B</Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              value={item.valB}
+                              onChange={(e) =>
+                                handleGridItemChange(
+                                  item.id,
+                                  "valB",
+                                  e.target.value,
+                                )
+                              }
+                              className="mt-1"
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
                 </TabsContent>
 
-                {/* CONSULTORIOS */}
-                <TabsContent value="consultorios" className="space-y-3">
-                  {loadingConsultorios ? (
-                    <p className="text-sm text-slate-500">
-                      Cargando consultorios…
-                    </p>
+                {/* TAB 2: Lista Vertical (Estilo "Consultorios") */}
+                <TabsContent value="tab2" className="space-y-3">
+                  {/* CORRECCIÓN: Cambiado 'true' por una condición real. Si la lista está vacía, muestra el mensaje */}
+                  {listItems.length === 0 ? (
+                    <div className="py-6 text-center border border-dashed rounded-xl">
+                      <p className="text-sm text-slate-500">
+                        No hay consultorios asignados o están cargando...
+                      </p>
+                    </div>
                   ) : (
                     <div className="space-y-3">
-                      {consultorios.map((c) => (
+                      {listItems.map((item) => (
                         <div
-                          key={c.id}
+                          key={item.id}
                           className="grid gap-3 md:grid-cols-[1fr,auto] items-center rounded-2xl border p-3"
                         >
                           <div className="flex items-center gap-3">
                             <div className="h-9 w-9 grid place-items-center rounded-xl bg-slate-100">
                               <Building2 className="h-5 w-5 text-slate-600" />
                             </div>
-                            <Input readOnly value={c.nombre} />
+                            <Input
+                              readOnly
+                              value={item.titulo}
+                              className="border-none shadow-none focus-visible:ring-0 bg-transparent font-medium"
+                            />
                           </div>
                           <div className="flex items-center gap-2 justify-end">
-                            <Label className="text-sm">Turnos</Label>
+                            <Label className="text-sm">Valor</Label>
                             <Input
                               type="number"
                               min={1}
-                              max={20}
-                              value={c.turnos}
+                              value={item.valor}
                               onChange={(e) =>
-                                handleConsultorioChange(
-                                  c.id,
-                                  "turnos",
-                                  parseInt(e.target.value) || 1,
-                                )
+                                handleListItemChange(item.id, e.target.value)
                               }
                               className="w-24"
                             />
@@ -564,6 +491,7 @@ export default function CalendarioAbogadasUI() {
                 </TabsContent>
               </Tabs>
 
+              {/* Mensajes de Error */}
               {errorMensaje && (
                 <Alert variant="destructive">
                   <AlertTriangle className="h-4 w-4" />
@@ -572,27 +500,30 @@ export default function CalendarioAbogadasUI() {
                 </Alert>
               )}
             </CardContent>
+
+            {/* Footer de Acciones */}
             <CardFooter className="flex justify-end gap-2">
               <Button
                 variant="outline"
                 onClick={() => window.location.reload()}
                 className="rounded-xl"
+                disabled={submitting}
               >
-                Limpiar
+                <RotateCcw className="mr-2 h-4 w-4" /> Limpiar
               </Button>
               <Button
                 onClick={handleSubmit}
-                disabled={!isFormularioValido || submitting}
+                disabled={!isFormValido || submitting}
                 className="rounded-xl"
               >
-                {submitting ? "Guardando…" : "Generar calendario"}
+                {submitting ? "Procesando..." : "Guardar Cambios"}
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             </CardFooter>
           </Card>
         </div>
 
-        {/* Right Column: Summary */}
+        {/* COLUMNA DERECHA: RESUMEN (Sticky-like feel) */}
         <div className="space-y-6">
           <Card className="shadow-sm w-full">
             <CardHeader>
@@ -601,52 +532,66 @@ export default function CalendarioAbogadasUI() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Cuadrícula de Métricas (2x2) */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-xl border p-3">
-                  <p className="text-xs text-slate-500">Semanas</p>
-                  <p className="text-2xl font-semibold">{totalSemanas}</p>
+                  <p className="text-xs text-slate-500">Días Totales</p>
+                  <p className="text-2xl font-semibold">{resumen.metric1}</p>
                 </div>
                 <div className="rounded-xl border p-3">
-                  <p className="text-xs text-slate-500">Festivos</p>
-                  <p className="text-2xl font-semibold">{totalFestivos}</p>
+                  <p className="text-xs text-slate-500">Total Listas</p>
+                  {/* Se usó metric2 que corresponde a totalList */}
+                  <p className="text-2xl font-semibold">{resumen.metric2}</p>
                 </div>
                 <div className="rounded-xl border p-3">
-                  <p className="text-xs text-slate-500">Turnos/semana</p>
-                  <p className="text-2xl font-semibold">{totalTurnosSemana}</p>
+                  <p className="text-xs text-slate-500">Total Grid (Diario)</p>
+                  {/* Se usó metric3 que corresponde a totalGrid */}
+                  <p className="text-2xl font-semibold">{resumen.metric3}</p>
                 </div>
                 <div className="rounded-xl border p-3">
-                  <p className="text-xs text-slate-500">Turnos totales</p>
-                  <p className="text-2xl font-semibold">{totalTurnosReales}</p>
+                  <p className="text-xs text-slate-500">Estimado Global</p>
+                  <p className="text-2xl font-semibold">
+                    {resumen.totalGlobal}
+                  </p>
                 </div>
               </div>
 
+              {/* Lista de Detalles Texto */}
               <div className="space-y-1">
                 <p className="text-xs text-slate-500">Rango seleccionado</p>
                 <p className="font-medium tracking-tight">
-                  {rangoEvento.inicio || "—"}{" "}
+                  {mainConfig.fechaInicio || "—"}{" "}
                   <span className="text-slate-400">→</span>{" "}
-                  {rangoEvento.fin || "—"}
+                  {mainConfig.fechaFin || "—"}
                 </p>
               </div>
 
               <div className="space-y-1">
-                <p className="text-xs text-slate-500">Día de conciliación</p>
+                <p className="text-xs text-slate-500">Semestre</p>
+                {/* CORRECCIÓN: Usar la variable correcta mainConfig.semestre */}
                 <p className="font-medium tracking-tight">
-                  {diaConciliacion || "—"}
+                  {mainConfig.semestre
+                    ? `Semestre ${mainConfig.semestre}`
+                    : "Pendiente"}
                 </p>
               </div>
 
-              <div className="pt-2">
+              {/* Indicador de Estado Final */}
+              <div className="pt-2 border-t mt-2">
                 <div className="flex items-center gap-2 text-sm text-slate-600">
-                  {isFormularioValido ? (
+                  {isFormValido ? (
                     <>
                       <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                      Listo para generar
+                      <span className="text-emerald-700 font-medium">
+                        Listo para generar
+                      </span>
                     </>
                   ) : (
                     <>
                       <AlertTriangle className="h-4 w-4 text-amber-600" />
-                      Completa los campos requeridos
+                      <span className="text-amber-700">
+                        Faltan datos requeridos
+                      </span>
                     </>
                   )}
                 </div>
@@ -658,8 +603,8 @@ export default function CalendarioAbogadasUI() {
 
       <footer className="border-t bg-white/80">
         <div className="mx-auto max-w-7xl px-4 py-4 text-sm text-slate-500 flex items-center justify-between">
-          <span>© {new Date().getFullYear()} Estudio de Abogadas</span>
-          <span>Calendarios & Gestión de turnos</span>
+          <span>© {new Date().getFullYear()} Sistema de Gestión</span>
+          <span>Versión 1.0</span>
         </div>
       </footer>
     </div>

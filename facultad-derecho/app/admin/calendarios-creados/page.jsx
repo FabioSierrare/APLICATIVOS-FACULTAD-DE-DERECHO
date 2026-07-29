@@ -6,6 +6,7 @@ import useFetchData from "@/components/FetchData";
 import { deleteData } from "@/components/Delete";
 import CalendarSkeleton from "@/components/cargando";
 import { useRouter } from "next/navigation";
+import { PutData } from "@/components/FetchPut";
 
 export default function App() {
   const { data: calendario, fetchData } = useFetchData(
@@ -50,11 +51,7 @@ export default function App() {
     };
 
     try {
-      const respuesta = await fetch(`http://localhost:5031/api/Calendarios/PutCalendarios/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(enviar),
-      });
+      const respuesta = await PutData(`/api/Calendarios/PutCalendarios/${enviar.Id}`, enviar)
 
       if (!respuesta) {
         throw new Error("Error al guardar los datos");
@@ -85,6 +82,10 @@ export default function App() {
     } catch (error) {
       alert("Ocurrió un error al eliminar el calendario");
     }
+  }
+
+  const InfoCalendario = (id) => {
+    router.push(`/admin/calendarios-creados/${id}`)
   }
 
   const filteredData = calendarios.filter(
@@ -206,6 +207,9 @@ export default function App() {
 
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
+                        <button onClick={() => InfoCalendario(item.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
+                          <Edit2 className="w-4 h-4" />
+                        </button>
                         <button onClick={() => Eliminar(item.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
                           <Trash2 className="w-4 h-4" />
                         </button>

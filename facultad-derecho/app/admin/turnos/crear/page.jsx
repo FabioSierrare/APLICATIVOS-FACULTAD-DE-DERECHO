@@ -82,7 +82,6 @@ export default function prueba() {
         throw new Error("Error al guardar el turno");
       }
 
-      alert("Turno guardado con éxito");
       limpiar()
       await fetchData();
       } catch(error){

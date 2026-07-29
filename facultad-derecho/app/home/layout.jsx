@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Menu, User, Calendar, List, ChevronRight } from "lucide-react";
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 export default function HomeLayout({ children }) {
   const router = useRouter();
@@ -127,6 +128,7 @@ export default function HomeLayout({ children }) {
           className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
         ></div>
       )}
+      <GoogleAnalytics gaId="G-N01BK4KMH9" />
     </div>
   );
 }

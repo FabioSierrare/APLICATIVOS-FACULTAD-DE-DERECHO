@@ -11,6 +11,7 @@ import {
   endOfWeek,
 } from "date-fns";
 import "react-day-picker/dist/style.css";
+import Holidays from "date-holidays";
 
 import useFetchData from "@/components/FetchData";
 import { obtenerCalendarioHabilColombia } from "@/components/DiasMesColombia";
@@ -26,16 +27,14 @@ export default function DatePickerWithBlocksStudent({
 }) {
   const [internalSelected, setInternalSelected] = useState(undefined);
   const selectedValue = selected ?? internalSelected;
-
-  const { data: calendarios } = useFetchData("/api/Calendarios/GetCalendarios");
-  const { data: LimitesTurnos } = useFetchData(
-    "/api/LimitesTurnosConsultorio/GetLimitesTurnosConsultorio"
-  );
-  const { data: Turnos } = useFetchData("/api/Turnos/GetTurnos");
-  const { data: configuracionDias } = useFetchData(
-    "/api/ConfiguracionDias/GetConfiguracionDias"
-  );
   const { usuarioId, consultorioId, calendarioId } = useUsuarioTurno();
+  const { data: informacionCompleta } = useFetchData(
+    calendarioId ? `/api/CalendarioBloqueo/GetCalendarioBloqueo/${calendarioId}` : null
+  );
+  const [LimitesTurnos, setLimitesTurnos] = useState();
+  const [Turnos, setTurnos] = useState();
+  const [configuracionDias, setConfiguracionDias] = useState();
+  const [DiasBloqueo, setDiasBloqueo] = useState();  
 
   const [calendario, setCalendario] = useState(null);
   const [festivo, setFestivos] = useState(null);
@@ -48,13 +47,9 @@ export default function DatePickerWithBlocksStudent({
 
   // Cargar festivos
   useEffect(() => {
-    const cargarFestivos = async () => {
-      const año = mesVisible.getFullYear();
-      const mes = mesVisible.getMonth() + 1;
-      setFestivos(await obtenerCalendarioHabilColombia(año, mes));
-    };
-
-    cargarFestivos();
+    const año = mesVisible.getFullYear();
+    const mes = mesVisible.getMonth() + 1;
+    setFestivos(obtenerCalendarioHabilColombia(año, mes));
   }, [mesVisible]);
 
   const handleMonthChange = (month) => {
@@ -63,78 +58,81 @@ export default function DatePickerWithBlocksStudent({
 
   // Cargar calendario activo
   useEffect(() => {
-    if (!calendarios || calendarios.length === 0) return;
+    if (!informacionCompleta || informacionCompleta.length === 0) return;
 
-    const ultimo = calendarios[calendarios.length - 1];
+    const ultimo = informacionCompleta.calendario
     setCalendario(ultimo);
+    setLimitesTurnos(informacionCompleta.limitesTurnosConsultorio)
+    setTurnos(informacionCompleta.turnos)
+    setConfiguracionDias(informacionCompleta.configuracionDias)
+    setDiasBloqueo(informacionCompleta.diasBloqueo)
 
     if (onLoadCalendario) onLoadCalendario(ultimo);
-  }, [calendarios]);
+  }, [informacionCompleta]);
 
   // Función para formatear fechas (consistente con useCalendar)
-  const formatearFecha = (fecha) => new Date(fecha).toISOString().split('T')[0];
+  const formatearFecha = (fecha) => new Date(fecha).toISOString().split("T")[0];
 
- const getDisponibilidadJornada = (day) => {
-  const fechaNormalizada = formatearFecha(day);
+  const getDisponibilidadJornada = (day) => {
+    const fechaNormalizada = formatearFecha(day);
 
-  const diaSemanaMinuscula = day
-    .toLocaleDateString("es-ES", { weekday: "long" })
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
+    const diaSemanaMinuscula = day
+      .toLocaleDateString("es-ES", { weekday: "long" })
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
 
-  const configDia =
-    configuracionDias?.find(
+    const configDia = configuracionDias?.find(
       (c) =>
         c.calendarioId === calendarioId &&
         c.diaSemana
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase() === diaSemanaMinuscula
+          .toLowerCase() === diaSemanaMinuscula,
     ) || { maxTurnosAM: Infinity, maxTurnosPM: Infinity };
 
-  const turnosAM =
-    Turnos?.filter(
-      (t) =>
-        t.calendarioId === calendarioId &&
-        t.jornada === "AM" &&
-        formatearFecha(t.fecha) === fechaNormalizada
-    ).length || 0;
+    const turnosAM =
+      Turnos?.filter(
+        (t) =>
+          t.calendarioId === calendarioId &&
+          t.jornada === "AM" &&
+          formatearFecha(t.fecha) === fechaNormalizada,
+      ).length || 0;
 
-  const turnosPM =
-    Turnos?.filter(
-      (t) =>
-        t.calendarioId === calendarioId &&
-        t.jornada === "PM" &&
-        formatearFecha(t.fecha) === fechaNormalizada
-    ).length || 0;
+    const turnosPM =
+      Turnos?.filter(
+        (t) =>
+          t.calendarioId === calendarioId &&
+          t.jornada === "PM" &&
+          formatearFecha(t.fecha) === fechaNormalizada,
+      ).length || 0;
 
-  return {
-    AM: turnosAM < configDia.maxTurnosAM,
-    PM: turnosPM < configDia.maxTurnosPM,
-  };
-};
-
-// =========================
-// 🚀 handleSelect INTEGRADO
-// =========================
-
-const handleSelect = (date) => {
-  if (!date) return;
-
-  const disponibilidad = getDisponibilidadJornada(date);
-
-  // Si NO hay AM NI PM -> Bloqueado, no seleccionar
-  if (!disponibilidad.AM && !disponibilidad.PM) return;
-
-  const resultado = {
-    date,
-    disponibilidad,
+    return {
+      AM: turnosAM < configDia.maxTurnosAM,
+      PM: turnosPM < configDia.maxTurnosPM,
+    };
   };
 
-  if (onSelect) onSelect(resultado);
-  else setInternalSelected(resultado);
-};
+  // =========================
+  // 🚀 handleSelect INTEGRADO
+  // =========================
+
+  const handleSelect = (date) => {
+    if (!date) return;
+
+    const disponibilidad = getDisponibilidadJornada(date);
+
+    // Si NO hay AM NI PM -> Bloqueado, no seleccionar
+    if (!disponibilidad.AM && !disponibilidad.PM) return;
+
+    const resultado = {
+      date,
+      disponibilidad,
+    };
+
+    if (onSelect) onSelect(resultado);
+    else setInternalSelected(resultado);
+  };
 
   
 
@@ -151,12 +149,17 @@ const handleSelect = (date) => {
           }
         })
         .filter((v, i, arr) => arr.findIndex((x) => isSameDay(x, v)) === i),
-    [blockedDates]
+    [blockedDates],
   );
 
   // ===============================
   // 🚀 **BLOQUEOS PRINCIPALES** (INTEGRADOS)
   // ===============================
+  // Llamamos siempre al hook para mantener el orden de los Hooks (pasamos null si no hay calendarioId)
+  
+
+  if (!calendarioId) return <p>Cargando datos del usuario…</p>;
+
   const isBlocked = (date) => {
     const day = startOfDay(date);
 
@@ -174,12 +177,12 @@ const handleSelect = (date) => {
     const limite =
       LimitesTurnos?.find(
         (l) =>
-          l.consultorioId === consultorioId && l.calendarioId === calendarioId
+          l.consultorioId === consultorioId && l.calendarioId === calendarioId,
       )?.limiteTurnos || Infinity;
 
     const totalTurnos =
       Turnos?.filter(
-        (t) => t.usuarioId === usuarioId && t.calendarioId === calendarioId
+        (t) => t.usuarioId === usuarioId && t.calendarioId === calendarioId,
       ).length || 0;
 
     if (limite <= totalTurnos) return true;
@@ -189,33 +192,33 @@ const handleSelect = (date) => {
       (t) =>
         t.usuarioId === usuarioId &&
         t.calendarioId === calendarioId &&
-        formatearFecha(t.fecha) === formatearFecha(day)
+        formatearFecha(t.fecha) === formatearFecha(day),
     );
 
     if (tieneTurnoElUsuario) return true;
 
     // Bloqueo: max turnos alcanzado por día (AM/PM) basado en jornadaSeleccionada
-    const diaSemanaMinuscula = day.toLocaleDateString('es-ES', { weekday: 'long' })
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
+    const diaSemanaMinuscula = day
+      .toLocaleDateString("es-ES", { weekday: "long" })
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase();
 
     const configDia = configuracionDias?.find(
       (c) =>
         c.calendarioId === calendarioId &&
         c.diaSemana
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .toLowerCase() === diaSemanaMinuscula
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase() === diaSemanaMinuscula,
     ) || { maxTurnosAM: Infinity, maxTurnosPM: Infinity };
-
 
     const turnosAM =
       Turnos?.filter(
         (t) =>
           t.calendarioId === calendarioId &&
           t.jornada === "AM" &&
-          formatearFecha(t.fecha) === formatearFecha(day)
+          formatearFecha(t.fecha) === formatearFecha(day),
       ).length || 0;
 
     const turnosPM =
@@ -223,13 +226,12 @@ const handleSelect = (date) => {
         (t) =>
           t.calendarioId === calendarioId &&
           t.jornada === "PM" &&
-          formatearFecha(t.fecha) === formatearFecha(day)
+          formatearFecha(t.fecha) === formatearFecha(day),
       ).length || 0;
-        
 
     //Bloqueo por si ya cumplio con el total de turnos para ese dia
-    if(turnosAM >= configDia.maxTurnosAM && turnosPM >= configDia.maxTurnosPM) return true;
-
+    if (turnosAM >= configDia.maxTurnosAM && turnosPM >= configDia.maxTurnosPM)
+      return true;
 
     // Bloqueo: Sábado (6) y Domingo (0)
     if (day.getDay() === 0 || day.getDay() === 6) return true;
@@ -275,6 +277,15 @@ const handleSelect = (date) => {
       if (f.esFestivo && isSameDay(day, parseISO(f.fecha))) return true;
     }
 
+    if (!DiasBloqueo || DiasBloqueo.length === 0) {
+      return false;
+    }
+
+    for (const fecha of DiasBloqueo) {
+      if (calendario && isSameDay(day, startOfDay(parseISO(fecha.fecha))))
+        return true;
+    }
+
     return false;
   };
 
@@ -285,8 +296,7 @@ const handleSelect = (date) => {
     today: "border-none rounded-xl",
   };
 
-  if (!calendario || !festivo) return <p>Cargando calendario…</p>;
-
+  if (!calendario || !festivo || !DiasBloqueo || !informacionCompleta) return <p>Cargando calendario…</p>;
   return (
     <div
       className={`xs:p-2 p-0 rounded-2xl shadow-lg border-white border-2 bg-primary flex flex-col xs:max-w-85 max-w-full ${className}`}

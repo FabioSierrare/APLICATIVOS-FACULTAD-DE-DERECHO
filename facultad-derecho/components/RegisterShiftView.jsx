@@ -12,10 +12,15 @@ export default function RegisterShiftView() {
   const [selectedDate, setSelectedDate] = useState(undefined);
   const [jornada, setJornada] = useState("");
   const [loading, setLoading] = useState(false);
+  const [btnloading, setbtnloading] = useState(false)
   const { usuarioId, consultorioId, calendarioId } = useUsuarioTurno();
   const router = useRouter();
 
   const handleSubmit = async () => {
+    if(btnloading) return
+    setbtnloading(true)
+
+
     if (
       !selectedDate?.date ||
       !jornada ||
@@ -33,17 +38,21 @@ export default function RegisterShiftView() {
       CalendarioId: calendarioId,
     };
 
+
     try {
       const respuesta = await postData("/api/Turnos/PostTurnos", enviar);
       if (!respuesta) {
-        throw new Error("Error al guardar el turno");
+        throw new Error("Los cupos para esta jorna se llenaron por completo");
       }
 
       alert("Turno guardado con éxito");
       
       router.push("/home/turnos");
     } catch (error) {
-      alert("Ocurrió un error al guardar el turno");
+      alert("Los cupos para esta jorna se llenaron por completo");
+      window.location.reload()
+    } finally {
+      setbtnloading(false)
     }
   };
 
@@ -166,12 +175,12 @@ export default function RegisterShiftView() {
               {/* Botón de Acción */}
               <button
                 onClick={handleSubmit}
-                disabled={!jornada || loading}
+                disabled={!jornada || loading || btnloading}
                 className={`
                   w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 
                   transition-transform active:scale-95
                   ${
-                    !jornada || loading
+                    !jornada || loading || btnloading
                       ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                       : "bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/30"
                   }

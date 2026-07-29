@@ -1,1 +1,552 @@
-[]
+[
+  {
+    "semana": 2,
+    "dia": "Lunes",
+    "jornada": "AM",
+    "fila": 8,
+    "estudiante": "FABIO SIERRA",
+    "asesor": "Dans",
+    "consultorio": 3,
+    "fechaTurno": "Aug-03,-2026"
+  },
+  {
+    "semana": 2,
+    "dia": "Lunes",
+    "jornada": "AM",
+    "fila": 9,
+    "estudiante": "FABIO SIERRA",
+    "asesor": "fff",
+    "consultorio": 3,
+    "fechaTurno": "Aug-03,-2026"
+  },
+  {
+    "semana": 2,
+    "dia": "Lunes",
+    "jornada": "AM",
+    "fila": 10,
+    "estudiante": "FABIO SIERRA",
+    "asesor": "Dans",
+    "consultorio": 3,
+    "fechaTurno": "Aug-03,-2026"
+  },
+  {
+    "semana": 2,
+    "dia": "Lunes",
+    "jornada": "PM",
+    "fila": 11,
+    "estudiante": "FABIO SIERRA",
+    "asesor": "fff",
+    "consultorio": 3,
+    "fechaTurno": "Aug-03,-2026"
+  },
+  {
+    "semana": 2,
+    "dia": "Lunes",
+    "jornada": "PM",
+    "fila": 12,
+    "estudiante": "FABIO SIERRA",
+    "asesor": "fff",
+    "consultorio": 3,
+    "fechaTurno": "Aug-03,-2026"
+  },
+  {
+    "semana": 2,
+    "dia": "Lunes",
+    "jornada": "PM",
+    "fila": 13,
+    "estudiante": "FABIO SIERRA",
+    "asesor": "fff",
+    "consultorio": 3,
+    "fechaTurno": "Aug-03,-2026"
+  },
+  {
+    "semana": 2,
+    "dia": "Lunes",
+    "jornada": "PM",
+    "fila": 14,
+    "estudiante": "FABIO SIERRA",
+    "asesor": "fff",
+    "consultorio": 3,
+    "fechaTurno": "Aug-03,-2026"
+  },
+  {
+    "semana": 2,
+    "dia": "Miércoles",
+    "jornada": "AM",
+    "fila": 15,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-05,-2026"
+  },
+  {
+    "semana": 2,
+    "dia": "Miércoles",
+    "jornada": "AM",
+    "fila": 16,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-05,-2026"
+  },
+  {
+    "semana": 2,
+    "dia": "Miércoles",
+    "jornada": "AM",
+    "fila": 17,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-05,-2026"
+  },
+  {
+    "semana": 2,
+    "dia": "Miércoles",
+    "jornada": "AM",
+    "fila": 18,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-05,-2026"
+  },
+  {
+    "semana": 2,
+    "dia": "Miércoles",
+    "jornada": "PM",
+    "fila": 19,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-05,-2026"
+  },
+  {
+    "semana": 2,
+    "dia": "Miércoles",
+    "jornada": "PM",
+    "fila": 20,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-05,-2026"
+  },
+  {
+    "semana": 2,
+    "dia": "Miércoles",
+    "jornada": "PM",
+    "fila": 21,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-05,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Lunes",
+    "jornada": "AM",
+    "fila": 8,
+    "estudiante": "FABIO SIERRA",
+    "asesor": "Dans",
+    "consultorio": 3,
+    "fechaTurno": "Aug-10,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Lunes",
+    "jornada": "AM",
+    "fila": 9,
+    "estudiante": "FABIO SIERRA",
+    "asesor": "fff",
+    "consultorio": 3,
+    "fechaTurno": "Aug-10,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Lunes",
+    "jornada": "AM",
+    "fila": 10,
+    "estudiante": "FABIO SIERRA",
+    "asesor": "Dans",
+    "consultorio": 3,
+    "fechaTurno": "Aug-10,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Lunes",
+    "jornada": "AM",
+    "fila": 11,
+    "estudiante": "FABIO SIERRA",
+    "asesor": "fff",
+    "consultorio": 3,
+    "fechaTurno": "Aug-10,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Lunes",
+    "jornada": "AM",
+    "fila": 12,
+    "estudiante": "FABIO SIERRA",
+    "asesor": "Dans",
+    "consultorio": 3,
+    "fechaTurno": "Aug-10,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Lunes",
+    "jornada": "PM",
+    "fila": 13,
+    "estudiante": "FABIO SIERRA",
+    "asesor": "fff",
+    "consultorio": 3,
+    "fechaTurno": "Aug-10,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Lunes",
+    "jornada": "PM",
+    "fila": 14,
+    "estudiante": "FABIO SIERRA",
+    "asesor": "fff",
+    "consultorio": 3,
+    "fechaTurno": "Aug-10,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Lunes",
+    "jornada": "PM",
+    "fila": 15,
+    "estudiante": "FABIO SIERRA",
+    "asesor": "fff",
+    "consultorio": 3,
+    "fechaTurno": "Aug-10,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Lunes",
+    "jornada": "PM",
+    "fila": 16,
+    "estudiante": "FABIO SIERRA",
+    "asesor": "fff",
+    "consultorio": 3,
+    "fechaTurno": "Aug-10,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Lunes",
+    "jornada": "PM",
+    "fila": 17,
+    "estudiante": "FABIO SIERRA",
+    "asesor": "fff",
+    "consultorio": 3,
+    "fechaTurno": "Aug-10,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Miércoles",
+    "jornada": "AM",
+    "fila": 18,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-12,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Miércoles",
+    "jornada": "AM",
+    "fila": 19,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-12,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Miércoles",
+    "jornada": "AM",
+    "fila": 20,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-12,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Miércoles",
+    "jornada": "AM",
+    "fila": 21,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-12,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Miércoles",
+    "jornada": "AM",
+    "fila": 22,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-12,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Miércoles",
+    "jornada": "PM",
+    "fila": 23,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-12,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Miércoles",
+    "jornada": "PM",
+    "fila": 24,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-12,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Miércoles",
+    "jornada": "PM",
+    "fila": 25,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-12,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Miércoles",
+    "jornada": "PM",
+    "fila": 26,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-12,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Miércoles",
+    "jornada": "PM",
+    "fila": 27,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-12,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Jueves",
+    "jornada": "AM",
+    "fila": 28,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-13,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Jueves",
+    "jornada": "AM",
+    "fila": 29,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-13,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Jueves",
+    "jornada": "AM",
+    "fila": 30,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-13,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Jueves",
+    "jornada": "AM",
+    "fila": 31,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-13,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Jueves",
+    "jornada": "PM",
+    "fila": 32,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-13,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Jueves",
+    "jornada": "PM",
+    "fila": 33,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-13,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Jueves",
+    "jornada": "PM",
+    "fila": 34,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-13,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Jueves",
+    "jornada": "PM",
+    "fila": 35,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-13,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Viernes",
+    "jornada": "AM",
+    "fila": 36,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-14,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Viernes",
+    "jornada": "AM",
+    "fila": 37,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-14,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Viernes",
+    "jornada": "AM",
+    "fila": 38,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-14,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Viernes",
+    "jornada": "AM",
+    "fila": 39,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-14,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Viernes",
+    "jornada": "PM",
+    "fila": 40,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-14,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Viernes",
+    "jornada": "PM",
+    "fila": 41,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-14,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Viernes",
+    "jornada": "PM",
+    "fila": 42,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-14,-2026"
+  },
+  {
+    "semana": 3,
+    "dia": "Viernes",
+    "jornada": "PM",
+    "fila": 43,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-14,-2026"
+  },
+  {
+    "semana": 4,
+    "dia": "Jueves",
+    "jornada": "AM",
+    "fila": 8,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-20,-2026"
+  },
+  {
+    "semana": 4,
+    "dia": "Jueves",
+    "jornada": "AM",
+    "fila": 9,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-20,-2026"
+  },
+  {
+    "semana": 4,
+    "dia": "Jueves",
+    "jornada": "AM",
+    "fila": 10,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-20,-2026"
+  },
+  {
+    "semana": 4,
+    "dia": "Jueves",
+    "jornada": "AM",
+    "fila": 11,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-20,-2026"
+  },
+  {
+    "semana": 4,
+    "dia": "Jueves",
+    "jornada": "PM",
+    "fila": 12,
+    "estudiante": "FABIO SIERRA",
+    "asesor": null,
+    "consultorio": 3,
+    "fechaTurno": "Aug-20,-2026"
+  }
+]

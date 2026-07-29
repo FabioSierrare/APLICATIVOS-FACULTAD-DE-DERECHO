@@ -1,0 +1,6 @@
+allowBuilds:
+  '@heroui/shared-utils': false
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+  workerd: true

@@ -40,11 +40,11 @@ export default function RegisterShiftView() {
 
     if (bloqueadoPorDiaSemana || bloqueadoPorFecha) return false;
 
-    // Turno del usuario en ese día
-    const tieneTurnoElUsuario = Turnos.some(
-      t => t.usuarioId === usuarioId && formatearFecha(t.fecha) === formatearFecha(fecha)
+    // Turno del usuario en ese día y jornada (permitir diferente jornada)
+    const tieneTurnoEnLaMismaJornada = Turnos.some(
+      t => t.usuarioId === usuarioId && formatearFecha(t.fecha) === formatearFecha(fecha) && t.jornada === jornada
     );
-    if (tieneTurnoElUsuario) return false;
+    if (tieneTurnoEnLaMismaJornada) return false;
 
     // Límite global de turnos por usuario
     const limite = LimitesTurnos.find(

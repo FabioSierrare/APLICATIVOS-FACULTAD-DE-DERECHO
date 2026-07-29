@@ -44,20 +44,14 @@ export default function TurnosTable() {
       consultorio: consu ? consu.consultorioId : "Sin definir",
       turnos: turnosUsuario, // 👈 aquí guardas solo los suyos
     };
-  });
+  }).filter((u) => u.rolId === 2);
 
-  const filteredx = usuarios.filter((u) =>
+  const filtered = usuarios.filter((u) =>
     [u.nombre, u.correo, u.documento]
       .join(" ")
       .toLowerCase()
       .includes(search.toLowerCase())
   );
-
-  const filtered = filteredx.filter((u) => 
-    u.turnos.length > 0
-  )
-
-  console.log("Usuarios filtrados con turnos:", filtered);
 
   const meses = [
     "Enero",
@@ -84,6 +78,7 @@ export default function TurnosTable() {
   }
 
   const handleSendEmail = async (user) => {
+    if(user.turnos.length === 0) return alert("Este usuario no tiene turnos que notificar")
     try {
       const correo = {
         para: user.correo,
@@ -194,7 +189,7 @@ export default function TurnosTable() {
                     <td className="px-4 py-3 flex gap-2 justify-center">
                       <Button
                         onClick={() => handleSendEmail(user)}
-                        className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg"
+                        className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg cursor-pointer"
                         size="sm"
                       >
                         Enviar correo

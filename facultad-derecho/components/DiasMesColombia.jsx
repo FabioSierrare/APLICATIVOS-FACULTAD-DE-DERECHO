@@ -1,9 +1,10 @@
-export async function obtenerCalendarioHabilColombia(anio = new Date().getFullYear(),
+import Holidays from "date-holidays";
+
+export function obtenerCalendarioHabilColombia(anio = new Date().getFullYear(),
   mes = new Date().getMonth() + 1) {
 
-  const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${anio}/CO`);
-  const festivos = await response.json();
-
+  const hd = new Holidays("CO");
+  
   const diasEnElMes = new Date(anio, mes, 0).getDate(); // mes: 1-12
   const nombreMes = new Intl.DateTimeFormat('es-CO', { month: 'long' }).format(new Date(anio, mes - 1));
 
@@ -19,14 +20,14 @@ export async function obtenerCalendarioHabilColombia(anio = new Date().getFullYe
 
     const fechaISO = fecha.toISOString().split("T")[0];
     const diaSemana = new Intl.DateTimeFormat('es-CO', { weekday: 'long' }).format(fecha);
-    const festivo = festivos.find(f => f.date === fechaISO);
+    const esFestivo = !!hd.isHoliday(fecha);
 
     calendarioColombia.push({
       dia,
       fecha: fechaISO,
       diaSemana,
-      esFestivo: !!festivo,
-      nombreFestivo: festivo?.localName || null,
+      esFestivo,
+      nombreFestivo: null,
       nombreMes,
       anio
     });

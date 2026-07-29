@@ -28,13 +28,6 @@ export default function AdvisorScheduler() {
   );
   const router = useRouter()
 
-  // Datos simulados de asesores disponibles
-  const AVAILABLE_ADVISORS = [
-    { id: 1, name: "Carlos Pérez" },
-    { id: 2, name: "Maria Rodriguez" },
-    { id: 3, name: "Jorge Gomez" },
-    { id: 4, name: "Ana Torres" },
-  ];
 
   const DAYS_OF_WEEK = ["LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES"];
 
@@ -55,18 +48,21 @@ export default function AdvisorScheduler() {
   };
 
   useEffect(() => {
-    if (asesores && consultorioProfesores) {
-      // Creamos un objeto limpio para llenar
-      const newSchedule = {
-        LUNES: [],
-        MARTES: [],
-        MIÉRCOLES: [],
-        JUEVES: [],
-        VIERNES: [],
-      };
+  if (asesores && consultorioProfesores && calendario) {
+    const newSchedule = {
+      LUNES: [],
+      MARTES: [],
+      MIÉRCOLES: [],
+      JUEVES: [],
+      VIERNES: [],
+    };
 
-      consultorioProfesores.forEach((cp) => {
-        const profesor = asesores.find((as) => as.id === cp.profesorId).nombre;
+    consultorioProfesores
+      .filter((cp) => cp.calendarioId === calendario.id) // 🔥 FILTRO CLAVE
+      .forEach((cp) => {
+        const profesor =
+          asesores.find((as) => as.id === cp.profesorId)?.nombre || "";
+
         const dia = cp.diaSemana.toUpperCase();
 
         if (newSchedule[dia]) {
@@ -80,9 +76,9 @@ export default function AdvisorScheduler() {
         }
       });
 
-      setSchedule(newSchedule);
-    }
-  }, [asesores, consultorioProfesores]);
+    setSchedule(newSchedule);
+  }
+}, [asesores, consultorioProfesores, calendario]);
 
   // Añadir una fila vacía
   const addAdvisorRow = (day) => {
@@ -109,29 +105,51 @@ export default function AdvisorScheduler() {
     }));
   };
 
-  // Actualizar la selección del asesor
+  // Actualizar la selección del asesor (permite mismo profesor en distinta jornada)
   const updateAdvisor = (day, slotId, newAdvisorId) => {
     setSchedule((prev) => ({
       ...prev,
-      [day]: prev[day].map((slot) =>
-        slot.id === slotId &&
-        !schedule[day].find((sc) => sc.profesorId === parseInt(newAdvisorId))
-          ? {
-              ...slot,
-              profesorId: parseInt(newAdvisorId),
-              diaSemana: capitalizeFirstLetter(day.toLowerCase()),
-            }
-          : slot,
-      ),
+      [day]: prev[day].map((slot) => {
+        if (slot.id !== slotId) return slot;
+        const parsedId = parseInt(newAdvisorId);
+        const selectedSlot = schedule[day].find((s) => s.id === slotId) || {};
+        const jornadaSeleccionada = selectedSlot.jornada || "";
+        // Evita duplicar el mismo profesor en la misma jornada
+        const existe = schedule[day].some(
+          (sc) =>
+            sc.profesorId === parsedId &&
+            (sc.jornada === jornadaSeleccionada || (!sc.jornada && !jornadaSeleccionada))
+        );
+        if (existe) {
+          // No actualizar si ya existe (podrías mostrar una alerta si lo deseas)
+          return slot;
+        }
+        return {
+          ...slot,
+          profesorId: parsedId,
+          diaSemana: capitalizeFirstLetter(day.toLowerCase()),
+        };
+      }),
     }));
   };
 
   const updateField = (day, slotId, field, value) => {
     setSchedule((prev) => ({
       ...prev,
-      [day]: prev[day].map((slot) =>
-        slot.id === slotId ? { ...slot, [field]: value } : slot,
-      ),
+      [day]: prev[day].map((slot) => {
+        if (slot.id !== slotId) return slot;
+        // Si se está cambiando la jornada y ya hay otro registro con el mismo profesor y jornada, evitarlo
+        if (field === "jornada" && slot.profesorId) {
+          const existe = prev[day].some(
+            (sc) => sc.id !== slotId && sc.profesorId === slot.profesorId && sc.jornada === value
+          );
+          if (existe) {
+            alert("El profesor ya está asignado en esa jornada para este día.");
+            return slot; // no aplicar cambio
+          }
+        }
+        return slot.id === slotId ? { ...slot, [field]: value } : slot;
+      }),
     }));
   };
 

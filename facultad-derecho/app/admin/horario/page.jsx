@@ -5,13 +5,14 @@ import useFetchData from "@/components/FetchData";
 import { useUltimoCalendario } from "@/components/UltimoCalendario";
 import React from "react";
 import Holidays from "date-holidays";
+import { Download } from "lucide-react";
 
 export default function Prueba() {
   const calendario = useUltimoCalendario();
   const { data: turnos } = useFetchData("/api/Turnos/GetTurnos");
   const { data: usuarios } = useFetchData("/api/Usuarios/GetUsuarios");
   const { data: consultorioProfesores } = useFetchData(
-    "/api/ConsultorioProfesores/GetConsultorioProfesores"
+    "/api/ConsultorioProfesores/GetConsultorioProfesores",
   );
 
   const [contador, setcontador] = useState(0);
@@ -45,7 +46,6 @@ export default function Prueba() {
 
     semanasInicializadas.current = true;
     const fechaVerificacion = normalizarFecha(verificacionFecha);
-    console.log(semanas);
     for (let i = 0; i < semanas.length; i++) {
       const fechaInicio = normalizarFecha(semanas[i][0].fecha);
       const fechaFin = normalizarFecha(obtenerDomingo(fechaInicio));
@@ -78,6 +78,40 @@ export default function Prueba() {
     }
 
     setcontador(contador - 1);
+  };
+
+  const descarga = async (contador) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/Horario/semana/pdf/${contador}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/pdf",
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al generar el PDF");
+      }
+
+      const blob = await response.blob();
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = "Turnos_Semana.pdf"; // nombre final
+      document.body.appendChild(link);
+      link.click();
+
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+      alert("No se pudo descargar el archivo");
+    }
   };
 
   const asesoresCalendarioActual = consultorioProfesores
@@ -140,11 +174,11 @@ export default function Prueba() {
       }).sort((a, b) => ordenJornada[a.jornada] - ordenJornada[b.jornada]);
 
       const asesor = asesoresCalendarioActual.filter(
-        (t) => dia.dia === t.DiaSemana
+        (t) => dia.dia === t.DiaSemana,
       );
 
       return { ...dia, turno, asesor };
-    })
+    }),
   );
 
   const primeraSemanaOrdenada = turnosPorSemana[contador];
@@ -163,7 +197,7 @@ export default function Prueba() {
       // Determinamos cuántas filas necesitamos para esta jornada específica
       const maxFilas = Math.max(
         estudiantesJornada.length,
-        asesoresJornada.length
+        asesoresJornada.length,
       );
 
       for (let i = 0; i < maxFilas; i++) {
@@ -244,9 +278,18 @@ export default function Prueba() {
         </button>
 
         {/* Indicador Central (Opcional, para contexto visual) */}
-        <span className="hidden md:block text-sm font-bold text-gray-400 uppercase tracking-widest">
-          Navegación
-        </span>
+        <button
+          className="group flex items-center gap-2 px-5 py-2 bg-white border border-[#003366] text-[#003366] rounded
+             hover:bg-[#003366] hover:text-white transition-all duration-300 shadow-sm
+             font-semibold text-sm uppercase cursor-pointer"
+          onClick={() => descarga(contador)}
+        >
+          Descargar
+          <Download
+            size={18}
+            className="transition-transform duration-300 group-hover:translate-y-0.5"
+          />
+        </button>
 
         {/* Botón Derecho (Siguiente) */}
         <button
@@ -297,93 +340,111 @@ export default function Prueba() {
               </tr>
             </thead>
             <tbody>
-  {primeraSemanaOrdenada.map((dia, diaIndex) => {
-    const filasEstructuradas = obtenerFilasPorDia(dia);
-    const totalFilasDia = filasEstructuradas.length;
-    console.log(filasEstructuradas)
+              {primeraSemanaOrdenada.map((dia, diaIndex) => {
+                const filasEstructuradas = obtenerFilasPorDia(dia);
+                const totalFilasDia = filasEstructuradas.length;
 
-    // Si no hay nada en el día (ni turnos ni asesores)
-    if (totalFilasDia === 0) {
-      return (
-        <React.Fragment key={dia.fecha}>
-          <tr>
-            <td className="border-r border-black p-2 text-center">—</td>
-            <td className="border-r border-black p-2 text-center italic text-gray-400">
-              {esFestivo(dia.fecha) ? "Festivo" : "Sin actividad asignada"}
-            </td>
-            <td className="border-r border-black p-2"></td>
-            <td className="border-r border-black p-2 text-center font-bold">{dia.dia}</td>
-            <td className="border-r border-black p-2 text-center">
-              {new Date(dia.fecha).toLocaleDateString("es-CO")}
-            </td>
-            <td colSpan={4} className="p-2"></td>
-          </tr>
-          <tr className="bg-black h-[2px]"><td colSpan={9}></td></tr>
-        </React.Fragment>
-      );
-    }
+                // Si no hay nada en el día (ni turnos ni asesores)
+                if (totalFilasDia === 0) {
+                  return (
+                    <React.Fragment key={dia.fecha}>
+                      <tr>
+                        <td className="border-r border-black p-2 text-center">
+                          —
+                        </td>
+                        <td className="border-r border-black p-2 text-center italic text-gray-400">
+                          {esFestivo(dia.fecha)
+                            ? "Festivo"
+                            : "Sin actividad asignada"}
+                        </td>
+                        <td className="border-r border-black p-2"></td>
+                        <td className="border-r border-black p-2 text-center font-bold">
+                          {dia.dia}
+                        </td>
+                        <td className="border-r border-black p-2 text-center">
+                          {new Date(dia.fecha).toLocaleDateString("es-CO")}
+                        </td>
+                        <td colSpan={4} className="p-2"></td>
+                      </tr>
+                      <tr className="bg-black h-[2px]">
+                        <td colSpan={9}></td>
+                      </tr>
+                    </React.Fragment>
+                  );
+                }
 
-    return (
-      <React.Fragment key={dia.fecha}>
-        {filasEstructuradas.map((fila, filaIndex) => (
-          <tr key={`${dia.fecha}-${filaIndex}`}>
-            {/* No. (Contador global o relativo) */}
-            <td className="border-r border-black p-2 text-center">
-              {fila.estudiante ? Turnosfilter.indexOf(fila.estudiante) + 1 : "—"}
-            </td>
+                return (
+                  <React.Fragment key={dia.fecha}>
+                    {filasEstructuradas.map((fila, filaIndex) => (
+                      <tr key={`${dia.fecha}-${filaIndex}`}>
+                        {/* No. (Contador global o relativo) */}
+                        <td className="border-r border-black p-2 text-center">
+                          {fila.estudiante
+                            ? Turnosfilter.indexOf(fila.estudiante) + 1
+                            : "—"}
+                        </td>
 
-            {/* Estudiante */}
-            <td className="border-r border-black border p-2 uppercase">
-              {fila.estudiante?.Nombre || ""}
-            </td>
+                        {/* Estudiante */}
+                        <td className="border-r border-black border p-2 uppercase">
+                          {esFestivo(dia.fecha)
+                            ? "Festivo"
+                            : fila.estudiante?.Nombre || ""}
+                        </td>
 
-            {/* CJ (Consultorio) */}
-            <td className="border-r border border-black p-2 text-center uppercase">
-              {fila.estudiante?.consultorio || ""}
-            </td>
+                        {/* CJ (Consultorio) */}
+                        <td className="border-r border border-black p-2 text-center uppercase">
+                          {fila.estudiante?.consultorio || ""}
+                        </td>
 
-            {/* Columna Día (Solo aparece en la primera fila del día) */}
-            {filaIndex === 0 && (
-              <td
-                rowSpan={totalFilasDia}
-                className="border-r border-black p-0 align-middle bg-gray-50"
-              >
-                <div className="flex items-center justify-center h-full">
-                  <span className="[writing-mode:vertical-rl] rotate-180 font-bold uppercase text-xs">
-                    {dia.dia}
-                  </span>
-                </div>
-              </td>
-            )}
+                        {/* Columna Día (Solo aparece en la primera fila del día) */}
+                        {filaIndex === 0 && (
+                          <td
+                            rowSpan={totalFilasDia}
+                            className="border-r border-black p-0 align-middle bg-gray-50"
+                          >
+                            <div className="flex items-center justify-center h-full">
+                              <span className="[writing-mode:vertical-rl] rotate-180 font-bold uppercase text-xs">
+                                {dia.dia}
+                              </span>
+                            </div>
+                          </td>
+                        )}
 
-            {/* Fecha (Solo aparece en la primera fila del día o en todas, según prefieras) */}
-            <td className="border-r border-black border p-2 text-center">
-               {new Date(dia.fecha).toLocaleDateString("es-CO", { day: '2-digit', month: 'short' })}
-            </td>
+                        {/* Fecha (Solo aparece en la primera fila del día o en todas, según prefieras) */}
+                        <td className="border-r border-black border p-2 text-center">
+                          {new Date(dia.fecha).toLocaleDateString("es-CO", {
+                            day: "2-digit",
+                            month: "short",
+                          })}
+                        </td>
 
-            {/* Jornada */}
-            <td className="border-r border border-black p-2 text-center uppercase font-semibold">
-              {fila.jornada}
-            </td>
+                        {/* Jornada */}
+                        <td className="border-r border border-black p-2 text-center uppercase font-semibold">
+                          {fila.jornada}
+                        </td>
 
-            {/* Firma Estudiante */}
-            <td className="border-r border border-black p-2"></td>
+                        {/* Firma Estudiante */}
+                        <td className="border-r border border-black p-2"></td>
 
-            {/* Nombre del Asesor */}
-            <td className="border-r border-black p-2 border uppercase text-xs font-medium">
-              {fila.asesor?.Nombre || <span className="text-gray-300"></span>}
-            </td>
+                        {/* Nombre del Asesor */}
+                        <td className="border-r border-black p-2 border uppercase text-xs font-medium">
+                          {fila.asesor?.Nombre || (
+                            <span className="text-gray-300"></span>
+                          )}
+                        </td>
 
-            {/* Firma Asesor */}
-            <td className="p-2 border border-black"></td>
-          </tr>
-        ))}
-        {/* Separador entre días */}
-        <tr className="bg-black h-[2px]"><td colSpan={9}></td></tr>
-      </React.Fragment>
-    );
-  })}
-</tbody>
+                        {/* Firma Asesor */}
+                        <td className="p-2 border border-black"></td>
+                      </tr>
+                    ))}
+                    {/* Separador entre días */}
+                    <tr className="bg-black h-[2px]">
+                      <td colSpan={9}></td>
+                    </tr>
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
           </table>
         </div>
       </div>
