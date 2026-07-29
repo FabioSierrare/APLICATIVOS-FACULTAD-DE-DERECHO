@@ -1,7 +1,7 @@
 "use client";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Añadido useEffect
 import { postData } from "@/components/FetchPost";
 import { useAuth } from "@/components/AuthCont";
 import Link from "next/link";
@@ -19,8 +19,25 @@ export default function Login() {
     Contrasena: "",
   });
 
-  const [errorMensaje, setErrorMensaje] = useState(""); // Nuevo estado para mostrar el error
+  const [errorMensaje, setErrorMensaje] = useState("");
+  const [cargando, setCargando] = useState(false); // Estado para el bloqueo del botón
   const { setUsuario } = useAuth();
+  const pathname = usePathname();
+
+  // --- LÓGICA DE REDIRECCIÓN AUTOMÁTICA ---
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decode = jwtDecode(token);
+        // Redirigir según el rol guardado
+        if (decode.Rol === "Administrador") router.push("/admin");
+        else if (decode.Rol === "Estudiante") router.push("/home");
+      } catch (e) {
+        localStorage.removeItem("token");
+      }
+    }
+  }, [router]);
 
   const handlerChange = (e) => {
     setFormularioLogin({
@@ -31,22 +48,25 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (cargando) return; // Si ya está cargando, no hacer nada
+
     setErrorMensaje("");
+    setCargando(true); // Bloquear botón al iniciar
 
     try {
       const respuesta = await postData("/api/Auth/Login", FormularioLogin);
       if (!respuesta.token) {
         setErrorMensaje(respuesta.message || "Error desconocido");
+        setCargando(false); // Desbloquear si falla
         return;
       }
 
-      // Guardar token en cookie para que middleware lo lea
       document.cookie = `token=${respuesta.token}; path=/;`;
       const decode = jwtDecode(respuesta.token);
       localStorage.setItem("token", respuesta.token);
 
       setUsuario(decode);
-      // Redirigir según rol
+      
       if (decode.Rol === "Administrador") {
         router.push("/admin");
       } else if (decode.Rol === "Estudiante") {
@@ -56,9 +76,10 @@ export default function Login() {
       }
     } catch (error) {
       setErrorMensaje(error.message);
+      setCargando(false); // Desbloquear si hay error de red
     }
   };
-  const pathname = usePathname();
+
   return (
     <div>
       <NavBar>
@@ -66,7 +87,7 @@ export default function Login() {
           label="Iniciar sesión"
           href="/"
           isActive={pathname === "/"}
-          Icon={LogIn} // icono de iniciar sesión
+          Icon={LogIn}
         />
       </NavBar>
 
@@ -114,26 +135,20 @@ export default function Login() {
             />
           </div>
 
-          {errorMensaje}
+          <div className="text-red-500 text-sm mb-2">{errorMensaje}</div>
 
           <button
             type="submit"
-            className="bg-primary hover:bg-[#6A3BAF] text-white font-sans px-6 py-3 rounded-lg text-base border-none cursor-pointer w-full font-bold transition-colors duration-300 mt-4"
+            disabled={cargando} // Deshabilitar botón
+            className={`${
+                cargando ? "opacity-70 cursor-not-allowed" : ""
+            } bg-primary hover:bg-[#6A3BAF] text-white font-sans px-6 py-3 rounded-lg text-base border-none cursor-pointer w-full font-bold transition-colors duration-300 mt-4`}
           >
-            Iniciar Sesión
+            {cargando ? "Cargando..." : "Iniciar Sesión"}
           </button>
         </form>
 
         <div className="text-center mt-8 text-secundary-text">
-          <p>
-            ¿Aun no tienes cuenta?{" "}
-            <Link
-              href="registro-estudiante"
-              className="text-primary hover:text-purple-800"
-            >
-              Registrate
-            </Link>
-          </p>
           <p>© 2023 Estudio Jurídico. Todos los derechos reservados.</p>
         </div>
       </div>

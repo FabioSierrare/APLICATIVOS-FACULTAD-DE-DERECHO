@@ -19,21 +19,24 @@ export default function TurnosTable() {
   );
 
   const { data: Turnos, lo } = useFetchData("/api/Turnos/GetTurnos");
+  const { data: Calendario } = useFetchData("/api/Calendarios/GetCalendarios");
 
   if (loading || lod || loadin || lod) {
     return <h1>Cargando...</h1>;
   }
 
-  if (!Usuarios || !TipoDocumento || !Consultorios || !Turnos) {
+  if (!Usuarios || !TipoDocumento || !Consultorios || !Turnos || !Calendario) {
     return <h1>Esperando datos...</h1>;
   }
+
+  const ultimoCalendario = Calendario[Calendario.length - 1];
 
   const usuarios = Usuarios.map((u) => {
     const tipoDoc = TipoDocumento.find((t) => t.id === u.tipoDocumentoId);
     const consu = Consultorios.find((t) => t.usuarioId === u.id);
 
     // ✅ Filtra los turnos que pertenecen a este usuario
-    const turnosUsuario = Turnos.filter((t) => t.usuarioId === u.id);
+    const turnosUsuario = Turnos.filter((t) => t.usuarioId === u.id && t.calendarioId === ultimoCalendario.id);
 
     return {
       ...u,
@@ -41,18 +44,14 @@ export default function TurnosTable() {
       consultorio: consu ? consu.consultorioId : "Sin definir",
       turnos: turnosUsuario, // 👈 aquí guardas solo los suyos
     };
-  });
+  }).filter((u) => u.rolId === 2);
 
-  const filteredx = usuarios.filter((u) =>
+  const filtered = usuarios.filter((u) =>
     [u.nombre, u.correo, u.documento]
       .join(" ")
       .toLowerCase()
       .includes(search.toLowerCase())
   );
-
-  const filtered = filteredx.filter((u) => 
-    u.turnos.length > 0
-  )
 
   const meses = [
     "Enero",
@@ -79,6 +78,7 @@ export default function TurnosTable() {
   }
 
   const handleSendEmail = async (user) => {
+    if(user.turnos.length === 0) return alert("Este usuario no tiene turnos que notificar")
     try {
       const correo = {
         para: user.correo,
@@ -171,7 +171,7 @@ export default function TurnosTable() {
                     Documento
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-semibold">
-                    Consultorio
+                    Total turnos
                   </th>
                   <th className="px-4 py-3 text-center text-sm font-semibold">
                     Acciones
@@ -185,11 +185,11 @@ export default function TurnosTable() {
                     <td className="px-4 py-3 text-sm">{user.correo}</td>
                     <td className="px-4 py-3 text-sm">{user.tipoDocumento}</td>
                     <td className="px-4 py-3 text-sm">{user.documento}</td>
-                    <td className="px-4 py-3 text-sm">{user.consultorio}</td>
+                    <td className="px-4 py-3 text-sm">{user.turnos.length}</td>
                     <td className="px-4 py-3 flex gap-2 justify-center">
                       <Button
                         onClick={() => handleSendEmail(user)}
-                        className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg"
+                        className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg cursor-pointer"
                         size="sm"
                       >
                         Enviar correo

@@ -19,8 +19,12 @@ import { useRouter } from "next/navigation";
 
 export default function GestionUsuarios() {
   // Datos simulados de Usuarios
-  const { data: initialData, fetchData: fetchUsuarios } = useFetchData("/api/Usuarios/GetUsuarios");
-  const { data: consultorio, fetchData: fetchConsultorio } = useFetchData("/api/UsuarioConsultorios/GetUsuarioConsultorio")
+  const { data: initialData, fetchData: fetchUsuarios } = useFetchData(
+    "/api/Usuarios/GetUsuarios",
+  );
+  const { data: consultorio, fetchData: fetchConsultorio } = useFetchData(
+    "/api/UsuarioConsultorios/GetUsuarioConsultorio",
+  );
 
   const [usuarios, setUsuarios] = useState([]);
 
@@ -37,45 +41,48 @@ export default function GestionUsuarios() {
   const [searchTerm, setSearchTerm] = useState("");
   if (!initialData || !consultorio) return <CalendarSkeleton />;
 
+  const contenido = usuarios
+    .filter((u) => u.rolId === 2 || u.rolId === 3)
+    .map((u) => {
+      const cst = consultorio.find((c) => c.usuarioId === u.id);
 
-  const contenido = usuarios.filter((u) => u.rolId === 2).map(
-    (u) => {
-      const cst = consultorio.find((c) => c.usuarioId === u.id)
-
-      return{
+      return {
         ...u,
-        consultorio: cst.consultorioId
-      }
-    }).sort((a, b) => a.consultorio - b.consultorio)
+        consultorioId: cst ? cst.consultorioId : 0,
+        consultorio: cst ? cst.consultorioId : "Docente",
+      };
+    })
+    .sort((a, b) => a.consultorioId - b.consultorioId);
 
   // Filtrado
-  const filteredData = contenido.filter((item) =>
-    item.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    item.correo.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    item.documento.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredData = contenido.filter(
+    (item) =>
+      item.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.correo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.documento.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-
   const Eliminar = async (id) => {
-      
-      try {
-        const respuesta = await deleteData(`/api/Usuarios/DeleteUsuarios`, id)
-        if (!respuesta) {
-          throw new Error("Error al eliminar usuario");
-        }
-  
-        // 4. Actualizar UI solo cuando la API confirmó
-       await fetchUsuarios()
-      } catch (error) {
-        alert("Ocurrió un error al eliminar el usuario");
+    try {
+      const respuesta = await deleteData(`/api/Usuarios/DeleteUsuarios`, id);
+      if (!respuesta) {
+        throw new Error("Error al eliminar usuario");
       }
-    };
 
-  
+      // 4. Actualizar UI solo cuando la API confirmó
+      await fetchUsuarios();
+    } catch (error) {
+      alert("Ocurrió un error al eliminar el usuario");
+    }
+  };
+
   const informacion = (id) => {
-    router.push(`/admin/usuarios/informacion/${id}`)
-  }
+    router.push(`/admin/usuarios/informacion/${id}`);
+  };
 
+  const informacionasesores = (id) => {
+    router.push(`/admin/usuarios/informacion/editar-asesor/${id}`);
+  };
   return (
     <div className="min-h-screen bg-gray-50 font-sans p-6 md:p-10 text-gray-800">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -90,11 +97,14 @@ export default function GestionUsuarios() {
               Listado de usuario
             </h1>
             <p className="text-gray-500 mt-2 ml-1">
-              Gestiona la información del personal médico.
+              Gestiona la información estudiantil.
             </p>
           </div>
 
-          <button onClick={() => router.push("/admin/usuarios/registro-estudiante")} className="bg-[#553285] hover:bg-[#432669] text-white px-5 py-2.5 rounded-lg shadow-md transition-all flex items-center gap-2 font-medium">
+          <button
+            onClick={() => router.push("/admin/usuarios/registro-estudiante")}
+            className="bg-[#553285] hover:bg-[#432669] text-white px-5 py-2.5 rounded-lg shadow-md transition-all flex items-center gap-2 font-medium"
+          >
             <Plus className="w-5 h-5" />
             Nuevo Usuario
           </button>
@@ -157,9 +167,6 @@ export default function GestionUsuarios() {
                             <div className="font-semibold text-gray-900">
                               {usuario.nombre}
                             </div>
-                            <div className="text-xs text-gray-400 font-medium">
-                              Medico General
-                            </div>
                           </div>
                         </div>
                       </td>
@@ -194,7 +201,7 @@ export default function GestionUsuarios() {
                           <button
                             className="p-2 text-gray-500 hover:text-[#553285] hover:bg-[#553285]/10 rounded-lg transition-colors"
                             title="Información"
-                            onClick={() => informacion(usuario.id)}
+                            onClick={() => usuario.consultorioId !== 0 ? informacion(usuario.id) : informacionasesores(usuario.id)}
                           >
                             <FileUser className="w-4 h-4" />
                           </button>

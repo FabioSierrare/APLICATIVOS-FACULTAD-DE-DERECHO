@@ -105,6 +105,9 @@ const turnosfilterB = turnos
       <h1 className="text-white text-[18px] font-bold text-center">
         CAMBIO DE TURNO
       </h1>
+      <p className="text-sm text-white mt-1">
+                     Todos los campos obligatorios para el cambio del turno.
+                  </p>
       <div className="bg-white/10 m-auto rounded-2xl text-black mt-10">
         <form
           action=""

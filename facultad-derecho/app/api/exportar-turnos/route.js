@@ -2,66 +2,167 @@ import ExcelJS from "exceljs";
 import fs from "fs";
 import path from "path";
 import archiver from "archiver";
+import { PassThrough } from "stream";
 import { NextResponse } from "next/server";
 import { obtenerSemanas } from "@/components/obtenerTurnos";
 
 function parseFecha(fechaString) {
-  const clean = fechaString.replace(",", ""); // quitar coma rara
+  if (!fechaString) return new Date("Invalid Date");
+  const clean = fechaString.replace(",", "");
   return new Date(clean);
+}
+
+function formatearFechaColombia(fechaString) {
+  if (!fechaString) return "";
+  const fecha = parseFecha(fechaString);
+  if (Number.isNaN(fecha.getTime())) return "";
+
+  const dia = fecha.toLocaleDateString("es-CO", { day: "2-digit" });
+  let mes = fecha.toLocaleDateString("es-CO", { month: "short" });
+  const anio = fecha.toLocaleDateString("es-CO", { year: "numeric" });
+
+  mes = mes.replace(".", ""); // 👈 quita el punto
+
+  return `${dia}/${mes}/${anio}`;
+}
+
+/**
+ * 🎯 Función para asignar estudiantes y asesores automáticamente
+ */
+function asignarTurnosAutomaticamente(estudiantes, asesores) {
+  const asignaciones = [];
+  const totalEstudiantes = estudiantes.length;
+  const totalAsesores = asesores.length;
+
+  // Determinar cuántos estudiantes por asesor
+  const estudiantesPorAsesor = Math.ceil(totalEstudiantes / totalAsesores);
+
+  let indexEstudiante = 0;
+
+  // Recorrer asesores y asignar estudiantes
+  for (let i = 0; i < Math.max(totalEstudiantes, totalAsesores); i++) {
+    const estudiante = estudiantes[indexEstudiante] || null;
+    const asesor = asesores[i % totalAsesores] || null; // Cicla asesores si hay más estudiantes
+
+    asignaciones.push({
+      estudiante,
+      asesor,
+      indice: i,
+    });
+
+    indexEstudiante++;
+
+    // Si ya no hay más estudiantes, detener
+    if (indexEstudiante >= totalEstudiantes) break;
+  }
+
+  return asignaciones;
+}
+
+/**
+ * 🔢 Calcular cuántas filas se necesitan realmente
+ */
+function calcularFilasNecesarias(turnos, asesores) {
+  return Math.max(turnos.length, asesores.length);
+}
+
+/**
+ * 📊 Expandir filas si es necesario
+ */
+async function expandirFilasEnExcel(
+  sheet,
+  filaInicio,
+  filaFin,
+  filasNecesarias,
+) {
+  const filasDisponibles = filaFin - filaInicio + 1;
+
+  if (filasNecesarias > filasDisponibles) {
+    const filasAdicionales = filasNecesarias - filasDisponibles;
+
+    // Duplicar formato de la última fila
+    const filaModelo = sheet.getRow(filaFin);
+
+    for (let i = 1; i <= filasAdicionales; i++) {
+      const nuevaFila = filaFin + i;
+      const row = sheet.getRow(nuevaFila);
+
+      // Copiar estilos de la fila modelo
+      row.height = filaModelo.height;
+
+      ["A", "B", "C", "D", "E", "F", "G", "H"].forEach((col) => {
+        const celdaModelo = filaModelo.getCell(col);
+        const celdaNueva = row.getCell(col);
+
+        celdaNueva.style = { ...celdaModelo.style };
+        celdaNueva.border = { ...celdaModelo.border };
+      });
+    }
+
+    return filaFin + filasAdicionales;
+  }
+
+  return filaFin;
 }
 
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { diaConciliacion = "Martes", data = [], calendario = {} } = body;
-    console.log("📅 Generando turnos para:", diaConciliacion);
+    const { data = [], asesores = [], calendario = {}, diaConciliacion } = body;
 
-    // 📌 Ruta de la plantilla según el día
     const plantillaPath = path.join(
       process.cwd(),
       "plantillas",
-      `${diaConciliacion}.xlsx`
+      `ListaUnica.xlsx`,
     );
 
     if (!fs.existsSync(plantillaPath)) {
       return NextResponse.json(
         { error: "❌ No se encontró la plantilla" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
-    // 🔹 Organizar turnos por semanas
     const semanas = obtenerSemanas(calendario, diaConciliacion);
 
-    // 🔹 Asociar todos los turnos por día
+    // 🔹 Asociar turnos por día
     const turnosPorSemana = semanas.map((semana) =>
       semana.map((dia) => {
         const turnos = data.filter((t) => {
           const fechaTurno = parseFecha(t.fechaTurno);
           const fechaDia = new Date(dia.fecha);
+
           fechaTurno.setHours(0, 0, 0, 0);
           fechaDia.setHours(0, 0, 0, 0);
+
           return fechaTurno.getTime() === fechaDia.getTime();
-        });
-        return { ...dia, turnos };
-      })
+        }).sort((a, b) => a.jornada.localeCompare(b.jornada));
+
+        const asesoresDelDia = asesores.filter(
+          (a) => a.diaSemana.toUpperCase() === dia.dia.toUpperCase(),
+        );
+
+        return { ...dia, turnos, asesores: asesoresDelDia };
+      }),
     );
 
-    // 📂 Carpeta temporal
+    const semestre = calendario.semestre || "";
+    const anio = calendario.anio || "";
+
     const tempDir = path.join(process.cwd(), "tempExcels");
     if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
 
     const archivos = [];
-    const historial = []; // Guardamos fila, jornada y día
+    const historial = [];
 
     // 🔹 Mapeo de filas por día de conciliación y jornada
     const filasPorDiaConciliacion = {
       Lunes: {
-        Lunes: { AM: [8, 10], PM: [12, 14] },
-        Martes: { AM: [8, 10], PM: [12, 14] },
-        Miércoles: { AM: [16, 18], PM: [20, 22] },
-        Jueves: { AM: [24, 26], PM: [28, 30] },
-        Viernes: { AM: [32, 34], PM: [36, 38] },
+        Lunes: { AM: [9, 11], PM: [9, 11] },
+        Martes: { AM: [9, 11], PM: [13, 15] },
+        Miércoles: { AM: [17, 19], PM: [21, 23] },
+        Jueves: { AM: [25, 27], PM: [29, 31] },
+        Viernes: { AM: [33, 35], PM: [37, 39] },
       },
       Martes: {
         Lunes: { AM: [8, 10], PM: [12, 14] },
@@ -72,74 +173,159 @@ export async function POST(req) {
       },
       Miércoles: {
         Lunes: { AM: [8, 10], PM: [12, 14] },
-        Martes: { AM: [15, 17], PM: [19, 21] },
-        Miércoles: { AM: [15, 17], PM: [19, 21] },
+        Martes: { AM: [16, 18], PM: [20, 22] },
+        Miércoles: { AM: [16, 18], PM: [20, 22] },
         Jueves: { AM: [24, 26], PM: [28, 30] },
         Viernes: { AM: [32, 34], PM: [36, 38] },
       },
       Jueves: {
         Lunes: { AM: [8, 10], PM: [12, 14] },
-        Martes: { AM: [15, 17], PM: [19, 21] },
-        Miércoles: { AM: [23, 25], PM: [27, 29] },
-        Jueves: { AM: [23, 25], PM: [27, 29] },
-        Viernes: { AM: [31, 33], PM: [35, 37] },
+        Martes: { AM: [16, 18], PM: [20, 22] },
+        Miércoles: { AM: [24, 26], PM: [28, 30] },
+        Jueves: { AM: [24, 26], PM: [28, 30] },
+        Viernes: { AM: [32, 34], PM: [36, 38] },
       },
       Viernes: {
         Lunes: { AM: [8, 10], PM: [12, 14] },
-        Martes: { AM: [15, 17], PM: [19, 21] },
-        Miércoles: { AM: [23, 25], PM: [27, 29] },
-        Jueves: { AM: [31, 33], PM: [35, 37] },
-        Viernes: { AM: [31, 33], PM: [35, 37] },
+        Martes: { AM: [16, 18], PM: [20, 22] },
+        Miércoles: { AM: [24, 26], PM: [28, 30] },
+        Jueves: { AM: [32, 34], PM: [36, 38] },
+        Viernes: { AM: [32, 34], PM: [36, 38] },
+      },
+      "N/A": {
+        Lunes: { AM: [8, 10], PM: [11, 13] },
+        Martes: { AM: [14, 16], PM: [17, 19] },
+        Miércoles: { AM: [20, 22], PM: [23, 25] },
+        Jueves: { AM: [26, 28], PM: [29, 31] },
+        Viernes: { AM: [32, 34], PM: [35, 37] },
       },
     };
 
-    // Seleccionar el mapa correcto según el día de conciliación
     const filasPorDiaYJornada = filasPorDiaConciliacion[diaConciliacion];
 
+    console.log(turnosPorSemana)
+    let turnoindex = 1;
     // 🔹 Crear un Excel por semana
+    let contador = 1
     for (let i = 0; i < semanas.length; i++) {
       const workbook = new ExcelJS.Workbook();
       await workbook.xlsx.readFile(plantillaPath);
 
-      const sheet = workbook.worksheets[1];
+      const sheet = workbook.worksheets[0];
       if (!sheet) {
         return NextResponse.json(
           { error: "❌ El archivo Excel no contiene hojas" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
-      // Procesar cada día de la semana
-      turnosPorSemana[i].forEach((dia) => {
-        ["AM", "PM"].forEach((jornada) => {
-          const turnos = dia.turnos.filter((t) => t.jornada === jornada);
-          const rango = filasPorDiaYJornada[dia.dia]?.[jornada];
-          if (!rango) return;
+      sheet.getCell("A5").value =
+        `LISTADO DE ASIGNACION DE TURNOS PARA ESTUDIANTES  PERIODO  ${anio} - ${semestre.toUpperCase()}`;
 
-          let fila = rango[0];
-          turnos.forEach((turno) => {
-            if (fila > rango[1]) return;
+      sheet.getCell("A6").value = `SEMANA No. ${i + 1}`;
 
-            // Escribir en Excel
-            sheet.getCell(`B${fila}`).value = turno.Estudiante.toUpperCase();
-            sheet.getCell(`C${fila}`).value = turno.Consultorio;
-            sheet.getCell(`E${fila}`).value = turno.fechaTurno.toUpperCase();
-            sheet.getCell(`F${fila}`).value = turno.jornada.toUpperCase();
+      let fila = 8;
+      let filafinal = 8;
+      // 🎯 Procesar cada día de la semana
+      for (const dia of turnosPorSemana[i]) {
+        const jornadasDelDia = ["AM", "PM"].filter((jornada) => {
+          const turnosDeJornada = dia.turnos.filter(
+            (turno) => turno.jornada?.toUpperCase() === jornada,
+          );
+          const asesoresDeJornada = dia.asesores.filter(
+            (asesor) => asesor.jornada?.toUpperCase() === jornada,
+          );
 
-            // Guardar en historial
-            historial.push({
-              dia: dia.dia,
-              jornada,
-              fila,
-              estudiante: turno.Estudiante,
-              consultorio: turno.Consultorio,
-              fechaTurno: turno.fechaTurno,
+          return turnosDeJornada.length > 0 || asesoresDeJornada.length > 0;
+        });
+
+        for (const jornada of jornadasDelDia) {
+          const turnosDeJornada = dia.turnos.filter(
+            (turno) => turno.jornada?.toUpperCase() === jornada,
+          );
+          const asesoresDeJornada = dia.asesores.filter(
+            (asesor) => asesor.jornada?.toUpperCase() === jornada,
+          );
+
+          if (turnosDeJornada.length === 0) continue;
+
+          const filasNecesarias = Math.max(
+            turnosDeJornada.length,
+            asesoresDeJornada.length,
+          );
+
+          const totalFilasBloque = Math.max(
+            turnosDeJornada.length,
+            asesoresDeJornada.length,
+          );
+
+          const numfil = Math.max(dia.turnos.length, dia.asesores.length,)
+
+          if (jornada === "AM") {
+            sheet.mergeCells(`D${fila}:D${fila + numfil - 1}`);
+            sheet.getCell(`D${fila}`).value = dia.dia;
+            sheet.getCell(`D${fila}`).alignment = {
+              vertical: "middle",
+              horizontal: "center",
+            };
+          }
+
+          const aplicarEstiloBloque = (celda) => {
+            celda.alignment = { vertical: "middle", horizontal: "center" };
+            celda.border = {
+              top: { style: "thin", color: { argb: "FF000000" } },
+              left: { style: "thin", color: { argb: "FF000000" } },
+              bottom: { style: "thin", color: { argb: "FF000000" } },
+              right: { style: "thin", color: { argb: "FF000000" } },
+            };
+          };
+
+          ["A", "B", "C", "D", "E", "F", "G", "H", "J"].forEach((col) => {
+            aplicarEstiloBloque(sheet.getCell(`${col}${fila}`));
+          });
+
+          turnosDeJornada.forEach((asignacion, index) => {
+            const filaActual = fila + index;
+            const asesorAsignado =
+              asesoresDeJornada[index % asesoresDeJornada.length] || null;
+
+            sheet.getCell(`A${filaActual}`).value = contador;
+            contador++;
+
+            sheet.getCell(`B${filaActual}`).value = asignacion.Estudiante;
+            sheet.getCell(`C${filaActual}`).value = asignacion.Consultorio;
+            sheet.getCell(`E${filaActual}`).value = formatearFechaColombia(
+              asignacion.fechaTurno,
+            );
+            sheet.getCell(`F${filaActual}`).value = asignacion.jornada;
+
+            if (asesorAsignado) {
+              sheet.getCell(`H${filaActual}`).value = asesorAsignado.nombre;
+            } else {
+              sheet.getCell(`H${filaActual}`).value = "";
+            }
+
+            ["A", "B", "C", "D", "E", "F", "G", "H"].forEach((col) => {
+              aplicarEstiloBloque(sheet.getCell(`${col}${filaActual}`));
             });
 
-            fila++;
+            historial.push({
+              semana: i + 1,
+              dia: dia.dia,
+              jornada,
+              fila: filaActual,
+              estudiante: asignacion.Estudiante || null,
+              asesor: asesorAsignado?.nombre || null,
+              consultorio: asignacion.Consultorio || null,
+              fechaTurno: asignacion.fechaTurno || null,
+            });
+
+            turnoindex++;
           });
-        });
-      });
+
+          fila += filasNecesarias;
+        }
+      }
 
       const filePath = path.join(tempDir, `Semana${i + 1}.xlsx`);
       await workbook.xlsx.writeFile(filePath);
@@ -152,12 +338,26 @@ export async function POST(req) {
 
     // 📦 Crear ZIP
     const archive = archiver("zip", { zlib: { level: 9 } });
+    const output = new PassThrough();
     const chunks = [];
-    archive.on("data", (chunk) => chunks.push(chunk));
+
+    archive.on("error", (error) => {
+      throw error;
+    });
+
+    output.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
+
+    archive.pipe(output);
     archivos.forEach((filePath) => {
       archive.file(filePath, { name: path.basename(filePath) });
     });
-    await archive.finalize();
+
+    await new Promise((resolve, reject) => {
+      output.on("finish", resolve);
+      output.on("error", reject);
+      archive.finalize();
+    });
+
     const zipBuffer = Buffer.concat(chunks);
 
     return new NextResponse(zipBuffer, {
@@ -170,7 +370,7 @@ export async function POST(req) {
     console.error("❌ Error generando ZIP:", error);
     return NextResponse.json(
       { error: "No se pudo generar el archivo ZIP" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

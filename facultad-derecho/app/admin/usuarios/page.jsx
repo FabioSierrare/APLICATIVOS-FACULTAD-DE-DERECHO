@@ -102,7 +102,7 @@ export default function NewUser() {
 
     const Submit = async (e) => {
       e.preventDefault();
-      if (registro.data) {
+      if (registro.data && registro.data.length != 0) {
         try{
           const respuesta = await postData("/api/Usuarios/PostEstudiantesListado", registro.data)
           if (!respuesta) {

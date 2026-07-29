@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useUsuarioTurno } from "@/components/UsuarioData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Pencil, Search, FileDown, Delete } from "lucide-react";
+import { Pencil, Search, Trash, MailWarning } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { deleteData } from "@/components/Delete";
 import ExcelJS from "exceljs";
@@ -14,12 +14,15 @@ import JSZip from "jszip"; // 🔹 usamos JSZip en vez de fs/archiver (porque es
 export default function Turnos() {
   const { data: Turno, fetchData } = useFetchData("/api/Turnos/GetTurnos");
   const { data: Usuarios } = useFetchData("/api/Usuarios/GetUsuarios");
+  const { data: consultorioProfesores } = useFetchData(
+    "/api/ConsultorioProfesores/GetConsultorioProfesores",
+  );
   const { data: Rol } = useFetchData("/api/Rol/GetRol");
   const { data: Consultorios } = useFetchData(
-    "/api/Consultorios/GetConsultorios"
+    "/api/Consultorios/GetConsultorios",
   );
   const { data: ConfiguracionDias } = useFetchData(
-    "/api/ConfiguracionDias/GetConfiguracionDias"
+    "/api/ConfiguracionDias/GetConfiguracionDias",
   );
   const { data: Calendario } = useFetchData("/api/Calendarios/GetCalendarios");
   const [Turnos, setmisTurnos] = useState([]);
@@ -29,8 +32,9 @@ export default function Turnos() {
   useEffect(() => {
     if (!Turno || !Usuarios || !Consultorios) return; // 👈 dejamos lo mínimo necesario
 
-    const TurnosX = Turno.filter((t) => t.calendarioId === calendarioId).map((t) => {
-    const usuario = Usuarios.find((u) => u.id === t.usuarioId);
+    const TurnosX = Turno.filter((t) => t.calendarioId === calendarioId).map(
+      (t) => {
+        const usuario = Usuarios.find((u) => u.id === t.usuarioId);
         const Consultorio = Consultorios.find((c) => c.id === t.consultorioId);
         return {
           ...t,
@@ -39,7 +43,8 @@ export default function Turnos() {
           correo: usuario?.correo,
           consultorio: Consultorio?.nombre,
         };
-  })
+      },
+    );
     setmisTurnos(TurnosX);
   }, [Turno, Usuarios, Consultorios, calendarioId]); // 👈 dependencias mínimas
 
@@ -49,7 +54,7 @@ export default function Turnos() {
           .map((t) => {
             const usuario = Usuarios.find((u) => u.id === t.usuarioId);
             const consultorio = Consultorios.find(
-              (c) => c.id === t.consultorioId
+              (c) => c.id === t.consultorioId,
             );
 
             // Convertir la fecha a objeto Date
@@ -78,32 +83,63 @@ export default function Turnos() {
           .map(({ fechaOrden, ...rest }) => rest) // eliminar el campo auxiliar
       : [];
 
-  
-      const filteredTurnos = Turnos.filter(
+  const filteredTurnos = Turnos.filter(
     (turno) =>
       turno?.nombre?.toLowerCase().includes(search.toLowerCase()) ||
       turno?.consultorio?.toLowerCase().includes(search.toLowerCase()) ||
       turno?.jornada?.toLowerCase().includes(search.toLowerCase()) ||
-      turno?.documento?.toLowerCase().includes(search.toLowerCase())
+      turno?.documento?.toLowerCase().includes(search.toLowerCase()),
   );
 
   const Eliminar = async (turnoid) => {
     try {
-    const respuesta = await deleteData(`/api/Turnos/DeleteTurnos`, turnoid);
-    if (!respuesta) {
+      const respuesta = await deleteData(`/api/Turnos/DeleteTurnos`, turnoid);
+      if (!respuesta) {
         throw new Error("Error al guardar el turno");
       }
 
-    alert("Turno eliminado correctamente")
-    fetchData();
-  } catch (error) {
-    console.error(error);
-  }
-  }
-  if (!Calendario || !ConfiguracionDias) {
+      alert("Turno eliminado correctamente");
+      fetchData();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const EliminarSin = async (turnoid) => {
+    try {
+      const respuesta = await deleteData(
+        `/api/Turnos/DeleteTurnosSin`,
+        turnoid,
+      );
+      if (!respuesta) {
+        throw new Error("Error al guardar el turno");
+      }
+
+      alert("Turno eliminado correctamente");
+      fetchData();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  if (
+    !Calendario ||
+    !ConfiguracionDias ||
+    !consultorioProfesores ||
+    !Usuarios
+  ) {
     return <div>Cargando...</div>;
   }
 
+  const asesores = consultorioProfesores
+                  .filter((p) => p.calendarioId === calendarioId)
+                  .map((p) => ({
+                    ...p,
+                    nombre:
+                      Usuarios.find((u) => u.id === p.profesorId)?.nombre ||
+                      "Nombre no disponible",
+                  }));
+
+                  console.log(asesores)
 
   return (
     <div className="m-6 md:m-10">
@@ -127,48 +163,60 @@ export default function Turnos() {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-        <Button
-          onClick={async () => {
-            try {
-              const diaConciliacion = Calendario.find((t) => t.id === calendarioId).diaConciliacion;
-              const jornada = ConfiguracionDias.calendarioId === calendarioId;
-              const data = excel; // aquí ya tienes tu array formateado
-              const calendario = Calendario.find((t) => t.id === calendarioId);
+          <Button
+            onClick={async () => {
+              try {
+                const diaConciliacion = Calendario.find(
+                  (t) => t.id === calendarioId,
+                ).diaConciliacion;
+                const jornada = ConfiguracionDias.calendarioId === calendarioId;
+                const data = excel; // aquí ya tienes tu array formateado
+                const calendario = Calendario.find((t) => t.id === calendarioId);
+                const asesores = consultorioProfesores
+                  .filter((p) => p.calendarioId === calendarioId)
+                  .map((p) => ({
+                    ...p,
+                    nombre:
+                      Usuarios.find((u) => u.id === p.profesorId)?.nombre ||
+                      "Nombre no disponible",
+                  }));
 
-              const response = await fetch("/api/exportar-turnos", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  diaConciliacion,
-                  jornada,
-                  data,
-                  calendario,
-                }),
-              });
+                const response = await fetch("/api/exportar-turnos", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    diaConciliacion,
+                    asesores,
+                    data,
+                    calendario,
+                  }),
+                });
 
-              if (!response.ok) {
-                alert("❌ Error al generar el archivo");
-                return;
+                if (!response.ok) {
+                  const errorText = await response.text();
+                  throw new Error(errorText || "❌ Error al generar el archivo");
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `turnosMes_${diaConciliacion}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+              } catch (error) {
+                console.error("⚠️ Error al descargar:", error);
+                alert("Ocurrió un error al descargar el archivo");
               }
-
-              const blob = await response.blob();
-              const url = window.URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = `turnosMes_${diaConciliacion}.zip`;
-              a.click();
-              window.URL.revokeObjectURL(url);
-            } catch (error) {
-              console.error("⚠️ Error al descargar:", error);
-              alert("Ocurrió un error al descargar el archivo");
-            }
-          }}
-          className="bg-green-600 text-white rounded-lg px-4 py-2 hover:bg-green-700"
-        >
-          Descargar Excels turnos
-        </Button>
+            }}
+            className="bg-green-600 text-white rounded-lg px-4 py-2 hover:bg-green-700"
+          >
+            Descargar Excels turnos
+          </Button>
       </div>
 
       {/* Lista de turnos */}
@@ -200,22 +248,39 @@ export default function Turnos() {
                 className="bg-white rounded-2xl shadow-md p-6 w-full transition hover:shadow-xl border border-gray-200"
               >
                 <div className="border-[#553285] pb-2 border-b-2 flex justify-between items-center">
-                  <h2 className="text-xl font-bold text-primary">
+                  <h2 className="sm:text-xl font-bold text-primary">
                     Información del Turno
                   </h2>
-                  <Button
-                    variant="secondary"
-                    className="rounded-lg bg-red-500 text-white hover:bg-red-500/90 cursor-pointer"
-                    
-                    onClick={() => {
-                       const confirmar = window.confirm("¿Estás seguro de eliminar este turno?");
+                  <div className="flex flex-col mdd:flex-row mdd:justify-between">
+                    <Button
+                      variant="secondary"
+                      className="rounded-lg bg-red-500 text-white mb-2 mx-2 hover:bg-red-500/90 cursor-pointer sm:mb-2"
+                      onClick={() => {
+                        const confirmar = window.confirm(
+                          "¿Estás seguro de eliminar este turno?",
+                        );
                         if (!confirmar) return;
 
-                        Eliminar(turno.id)
-                    }}
-                  >
-                    Eliminar
-                  </Button>
+                        EliminarSin(turno.id);
+                      }}
+                    >
+                      Eliminar <Trash />
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      className="rounded-lg bg-red-500 text-white hover:bg-red-500/90 cursor-pointer"
+                      onClick={() => {
+                        const confirmar = window.confirm(
+                          "¿Estás seguro de eliminar este turno?",
+                        );
+                        if (!confirmar) return;
+
+                        Eliminar(turno.id);
+                      }}
+                    >
+                      Eliminar y notificar <MailWarning />
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="space-y-3 mt-3">
@@ -235,7 +300,7 @@ export default function Turnos() {
                   </p>
                   <p className="text-gray-700">
                     <span className="font-semibold text-[#333333]">
-                      Fecha Formateada:
+                      Fecha detallada:
                     </span>
                     <span className="ml-2 text-[#553285] font-medium">
                       {fechaFormateada}

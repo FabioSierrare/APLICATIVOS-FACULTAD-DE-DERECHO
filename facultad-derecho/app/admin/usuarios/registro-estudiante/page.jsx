@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { postData } from "@/components/FetchPost";
+import useFetchData from "@/components/FetchData";
 import NavBar from "@/components/NavBar";
 import ComponentLink from "@/components/ComponentLink";
 import { usePathname, useRouter } from "next/navigation";
@@ -25,34 +26,16 @@ export default function RegistroFormulario() {
   const [enviando, setEnviando] = useState(false);
   const [mensaje, setMensaje] = useState(null);
   const pathname = usePathname();
-  const [consultorio, setConsultorio] = useState([]);
-  const [tipoDocumento, setTipoDocumento] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [consultoriosRes, tiposDocRes] = await Promise.all([
-          fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/Consultorios/GetConsultorios`
-          ).then((res) => res.json()),
-          fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/TiposDocumento/GetTiposDocumento`
-          ).then((res) => res.json()),
-        ]);
-
-        setConsultorio(consultoriosRes);
-        setTipoDocumento(tiposDocRes);
-      } catch (err) {
-        console.error("Error cargando datos", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+  // /api/TiposDocumento/GetTiposDocumento`
+  // /api/Consultorios/GetConsultorios`
+  const { data: consultorio } = useFetchData(
+    "/api/Consultorios/GetConsultorios",
+  );
+  const { data: tipoDocumento } = useFetchData(
+    "/api/TiposDocumento/GetTiposDocumento",
+  );
 
   const numericFields = ["ConsultorioId", "TipoDocumentoId"];
 
@@ -105,7 +88,7 @@ export default function RegistroFormulario() {
 
       const respuesta = await postData(
         "/api/Usuarios/PostUsuarioEstudiante",
-        form
+        form,
       );
 
       if (respuesta) {
@@ -161,7 +144,7 @@ export default function RegistroFormulario() {
                 </p>
                 <div>
                   <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
-                    Formulario de registro
+                    Registro de estudiantes
                   </h1>
                   <p className="text-sm text-gray-600 mt-1">
                     Completa la información para continuar.{" "}

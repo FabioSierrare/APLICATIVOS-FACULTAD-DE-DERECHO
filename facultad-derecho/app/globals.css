@@ -125,7 +125,8 @@
     --color-bord: #dddddd;
     --color-facultad-azul: #0047BB;
 
-    --breakpoint-xs: 360px
+    --breakpoint-xs: 360px;
+    --breakpoint-mdd: 900px
 }
 
 :root {

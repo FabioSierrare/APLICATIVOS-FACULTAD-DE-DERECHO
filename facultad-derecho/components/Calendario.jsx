@@ -13,7 +13,7 @@ import {
 import "react-day-picker/dist/style.css";
 import useFetchData from "@/components/FetchData";
 import { obtenerCalendarioHabilColombia } from "@/components/DiasMesColombia";
-
+import { useUltimoCalendario } from "./UltimoCalendario";
 /**
  * DatePickerWithBlocks (CORREGIDO)
  * - normaliza fechas (startOfDay) para evitar problemas de zona horaria
@@ -43,18 +43,25 @@ export default function DatePickerWithBlocks({
   const [calendario, setCalendario] = useState(null);
   const [festivo, setFestivos] = useState(null);
   const [mesVisible, setMesVisible] = useState(new Date());
-  const today = new Date();
+  const today = startOfDay(new Date());
   const inicioSemana = startOfWeek(today, { weekStartsOn: 1 });
   const finSemana = endOfWeek(today, { weekStartsOn: 1 });
-
+  const UltimoCalendario = useUltimoCalendario();
+  const { data: diasBloqueoData, loading: diasBloqueoLoading } = useFetchData(
+    UltimoCalendario?.id
+      ? `/api/DiasBloqueo/GetDiasBloqueo/${UltimoCalendario.id}`
+      : null,
+  );
+  const DiasBloqueo = useMemo(() => {
+    if (!diasBloqueoData) return [];
+    if (Array.isArray(diasBloqueoData)) return diasBloqueoData;
+    if (Array.isArray(diasBloqueoData?.data)) return diasBloqueoData.data;
+    return [];
+  }, [diasBloqueoData]);
   useEffect(() => {
-    const cargarFestivos = async () => {
-      const año = mesVisible.getFullYear();
-      const mes = mesVisible.getMonth() + 1;
-      setFestivos(await obtenerCalendarioHabilColombia(año, mes));
-    };
-
-    cargarFestivos();
+    const año = mesVisible.getFullYear();
+    const mes = mesVisible.getMonth() + 1;
+    setFestivos(obtenerCalendarioHabilColombia(año, mes));
   }, [mesVisible]);
 
   const handleMonthChange = (month) => {
@@ -127,6 +134,14 @@ export default function DatePickerWithBlocks({
 
     for (const f of festivo) {
       if (f.esFestivo && isSameDay(day, parseISO(f.fecha))) return true;
+    }
+
+    if(!DiasBloqueo || DiasBloqueo.length === 0){
+      return false
+    }
+
+    for(const fecha of DiasBloqueo){
+      if(calendario && isSameDay(day, startOfDay(parseISO(fecha.fecha)))) return true
     }
 
     return false;
