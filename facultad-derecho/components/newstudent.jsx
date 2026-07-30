@@ -3,9 +3,12 @@ export default function SelectedFileExcel({onFileSelect}){
     const file = e.target.files[0];
     if (!file) return;
 
-    // Verifica que sea Excel
-    if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
-      alert("El archivo debe ser Excel (.xlsx o .xls)");
+    const nombre = file.name.toLowerCase();
+    const esExcel = nombre.endsWith(".xlsx") || nombre.endsWith(".xls");
+    const esPdf = nombre.endsWith(".pdf");
+
+    if (!esExcel && !esPdf) {
+      alert("El archivo debe ser Excel (.xlsx o .xls) o PDF (.pdf)");
       return;
     }
 
@@ -28,7 +31,7 @@ export default function SelectedFileExcel({onFileSelect}){
             <input
               type="file"
               id="archivoExcel"
-              accept=".xlsx, .xls"
+              accept=".xlsx,.xls,.pdf,application/pdf"
               onChange={handleFileChange}
               className="bg-white text-black/75 p-1 rounded-xl"
             />

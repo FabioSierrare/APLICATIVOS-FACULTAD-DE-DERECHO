@@ -8,6 +8,60 @@ import * as XLSX from "xlsx";
 
 export default function NewUser() {
   const [registro, setRegistro] = useState({ data: [], hashes: [] });
+  const [archivoSeleccionado, setArchivoSeleccionado] = useState(null);
+
+  const enviarArchivoAGemi = async (file) => {
+    if (!file) return;
+
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const headers = {
+      "X-App-Service": "MiSecretoPro_2026",
+    };
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("archivo", file);
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/${"api/Gemi/GetLista".replace(/^\/+/, "")}`,
+        {
+          method: "POST",
+          headers,
+          body: formData,
+        }
+      );
+
+      console.log(response)
+
+      const rawResponse = await response.text();
+      let data;
+      try {
+        data = JSON.parse(rawResponse);
+      } catch {
+        data = rawResponse;
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          typeof data === "string"
+            ? data
+            : data?.message || data?.error || `Error: ${response.status}`
+        );
+      }
+
+      console.log("Respuesta API GetLista:", data);
+      alert("Prueba de la API GetLista enviada correctamente");
+    } catch (error) {
+      console.error("Error al enviar el archivo a la API GetLista:", error);
+      alert("No se pudo enviar el archivo a la API GetLista");
+    }
+  };
 
   const head = [
     "Tipo de Documento",
@@ -24,7 +78,17 @@ export default function NewUser() {
     PP: 4,
   };
 
-  const procesar = (file) => {
+  const procesar = async (file) => {
+    setArchivoSeleccionado(file);
+    await enviarArchivoAGemi(file);
+
+    const nombre = file.name.toLowerCase();
+    const esExcel = nombre.endsWith(".xlsx") || nombre.endsWith(".xls");
+
+    if (!esExcel) {
+      return;
+    }
+
     const reader = new FileReader();
 
     reader.onload = (e) => {
@@ -102,24 +166,15 @@ export default function NewUser() {
 
     const Submit = async (e) => {
       e.preventDefault();
-      if (registro.data && registro.data.length != 0) {
-        try{
-          const respuesta = await postData("/api/Usuarios/PostEstudiantesListado", registro.data)
-          if (!respuesta) {
-          throw new Error("Error al guardar los datos");
-        }
 
-  
-        alert("Registros guardado con éxito");
-        } catch(error){
-          alert("Ocurrió un error al registrar los estudiantes");
-        }
-      }else {
-        alert("Obligatorio agregar lista de estudiantes");
-        return;
+      if (archivoSeleccionado) {
+        await enviarArchivoAGemi(archivoSeleccionado);
       }
+
+      
     };
 
+    console.log(archivoSeleccionado)
   return (
     <div className="py-10 px-5 bg-white rounded-2xl">
       <div className="p-5 bg-[linear-gradient(143deg,_rgba(129,33,255,1)_0%,_rgba(46,11,36,1)_50%,_rgba(160,40,235,1)_86%)] rounded-xl">
