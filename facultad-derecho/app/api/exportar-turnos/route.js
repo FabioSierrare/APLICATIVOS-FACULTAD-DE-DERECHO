@@ -155,54 +155,6 @@ export async function POST(req) {
     const archivos = [];
     const historial = [];
 
-    // 🔹 Mapeo de filas por día de conciliación y jornada
-    const filasPorDiaConciliacion = {
-      Lunes: {
-        Lunes: { AM: [9, 11], PM: [9, 11] },
-        Martes: { AM: [9, 11], PM: [13, 15] },
-        Miércoles: { AM: [17, 19], PM: [21, 23] },
-        Jueves: { AM: [25, 27], PM: [29, 31] },
-        Viernes: { AM: [33, 35], PM: [37, 39] },
-      },
-      Martes: {
-        Lunes: { AM: [8, 10], PM: [12, 14] },
-        Martes: { AM: [8, 10], PM: [12, 14] },
-        Miércoles: { AM: [16, 18], PM: [20, 22] },
-        Jueves: { AM: [24, 26], PM: [28, 30] },
-        Viernes: { AM: [32, 34], PM: [36, 38] },
-      },
-      Miércoles: {
-        Lunes: { AM: [8, 10], PM: [12, 14] },
-        Martes: { AM: [16, 18], PM: [20, 22] },
-        Miércoles: { AM: [16, 18], PM: [20, 22] },
-        Jueves: { AM: [24, 26], PM: [28, 30] },
-        Viernes: { AM: [32, 34], PM: [36, 38] },
-      },
-      Jueves: {
-        Lunes: { AM: [8, 10], PM: [12, 14] },
-        Martes: { AM: [16, 18], PM: [20, 22] },
-        Miércoles: { AM: [24, 26], PM: [28, 30] },
-        Jueves: { AM: [24, 26], PM: [28, 30] },
-        Viernes: { AM: [32, 34], PM: [36, 38] },
-      },
-      Viernes: {
-        Lunes: { AM: [8, 10], PM: [12, 14] },
-        Martes: { AM: [16, 18], PM: [20, 22] },
-        Miércoles: { AM: [24, 26], PM: [28, 30] },
-        Jueves: { AM: [32, 34], PM: [36, 38] },
-        Viernes: { AM: [32, 34], PM: [36, 38] },
-      },
-      "N/A": {
-        Lunes: { AM: [8, 10], PM: [11, 13] },
-        Martes: { AM: [14, 16], PM: [17, 19] },
-        Miércoles: { AM: [20, 22], PM: [23, 25] },
-        Jueves: { AM: [26, 28], PM: [29, 31] },
-        Viernes: { AM: [32, 34], PM: [35, 37] },
-      },
-    };
-
-    const filasPorDiaYJornada = filasPorDiaConciliacion[diaConciliacion];
-
     console.log(turnosPorSemana)
     let turnoindex = 1;
     // 🔹 Crear un Excel por semana
@@ -232,12 +184,15 @@ export async function POST(req) {
           const turnosDeJornada = dia.turnos.filter(
             (turno) => turno.jornada?.toUpperCase() === jornada,
           );
+          let day = dia.dia
           const asesoresDeJornada = dia.asesores.filter(
             (asesor) => asesor.jornada?.toUpperCase() === jornada,
           );
 
           return turnosDeJornada.length > 0 || asesoresDeJornada.length > 0;
         });
+
+        let day = "primer"
 
         for (const jornada of jornadasDelDia) {
           const turnosDeJornada = dia.turnos.filter(
@@ -261,7 +216,7 @@ export async function POST(req) {
 
           const numfil = Math.max(dia.turnos.length, dia.asesores.length,)
 
-          if (jornada === "AM") {
+          if (dia.dia !== day) {
             sheet.mergeCells(`D${fila}:D${fila + numfil - 1}`);
             sheet.getCell(`D${fila}`).value = dia.dia;
             sheet.getCell(`D${fila}`).alignment = {
@@ -280,7 +235,7 @@ export async function POST(req) {
             };
           };
 
-          ["A", "B", "C", "D", "E", "F", "G", "H", "J"].forEach((col) => {
+          ["A", "B", "C", "D", "E", "F", "G", "H", "I"].forEach((col) => {
             aplicarEstiloBloque(sheet.getCell(`${col}${fila}`));
           });
 
@@ -305,7 +260,7 @@ export async function POST(req) {
               sheet.getCell(`H${filaActual}`).value = "";
             }
 
-            ["A", "B", "C", "D", "E", "F", "G", "H"].forEach((col) => {
+            ["A", "B", "C", "D", "E", "F", "G", "H", "I"].forEach((col) => {
               aplicarEstiloBloque(sheet.getCell(`${col}${filaActual}`));
             });
 

@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import RegisterShiftView from "@/components/RegisterShiftView";
+import RegistroTurnosEstudiante from "@/components/Estudiante/RegistroTurnos";
 
 export default function Home() {
   return (
@@ -9,10 +10,12 @@ export default function Home() {
         <h2 className="text-3xl font-bold text-primary border-l-4 border-secondary pl-4">
           Programación de Turnos
         </h2>
-        <p className="text-gray-500 mt-2 pl-4">Selecciona una fecha disponible en el calendario y confirma tu turno.</p>
+        <p className="text-gray-500 mt-2 pl-4">
+          Selecciona una fecha disponible en el calendario y confirma tu turno.
+        </p>
       </header>
 
-      <RegisterShiftView />
+      <RegistroTurnosEstudiante />
     </main>
   );
 }

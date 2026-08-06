@@ -29,12 +29,14 @@ export default function DatePickerWithBlocksStudent({
   const selectedValue = selected ?? internalSelected;
   const { usuarioId, consultorioId, calendarioId } = useUsuarioTurno();
   const { data: informacionCompleta } = useFetchData(
-    calendarioId ? `/api/CalendarioBloqueo/GetCalendarioBloqueo/${calendarioId}` : null
+    calendarioId
+      ? `/api/CalendarioBloqueo/GetCalendarioBloqueo/${calendarioId}`
+      : null,
   );
   const [LimitesTurnos, setLimitesTurnos] = useState();
   const [Turnos, setTurnos] = useState();
   const [configuracionDias, setConfiguracionDias] = useState();
-  const [DiasBloqueo, setDiasBloqueo] = useState();  
+  const [DiasBloqueo, setDiasBloqueo] = useState();
 
   const [calendario, setCalendario] = useState(null);
   const [festivo, setFestivos] = useState(null);
@@ -60,12 +62,12 @@ export default function DatePickerWithBlocksStudent({
   useEffect(() => {
     if (!informacionCompleta || informacionCompleta.length === 0) return;
 
-    const ultimo = informacionCompleta.calendario
+    const ultimo = informacionCompleta.calendario;
     setCalendario(ultimo);
-    setLimitesTurnos(informacionCompleta.limitesTurnosConsultorio)
-    setTurnos(informacionCompleta.turnos)
-    setConfiguracionDias(informacionCompleta.configuracionDias)
-    setDiasBloqueo(informacionCompleta.diasBloqueo)
+    setLimitesTurnos(informacionCompleta.limitesTurnosConsultorio);
+    setTurnos(informacionCompleta.turnos);
+    setConfiguracionDias(informacionCompleta.configuracionDias);
+    setDiasBloqueo(informacionCompleta.diasBloqueo);
 
     if (onLoadCalendario) onLoadCalendario(ultimo);
   }, [informacionCompleta]);
@@ -107,9 +109,22 @@ export default function DatePickerWithBlocksStudent({
           formatearFecha(t.fecha) === fechaNormalizada,
       ).length || 0;
 
+    //Verificar si en este dia el estudiante tiene un turno
+    const turno_dia = Turnos?.find(
+      (t) =>
+        t.usuarioId === usuarioId &&
+        t.calendarioId === calendarioId &&
+        formatearFecha(t.fecha) === fechaNormalizada,
+    )?.jornada;
+
+    //Hay que retornar true si turnosAM/PM tiene menos turnos que ese dia para indicar que el dia esta disponible y tambien tenemos que ver si en esa jornada de ese dia existe por lo menos un turno del estudiante para tambien bloquear
+    const amDisponible = turnosAM < configDia.maxTurnosAM && turno_dia !== "AM";
+
+    const pmDisponible = turnosPM < configDia.maxTurnosPM && turno_dia !== "PM";
+
     return {
-      AM: turnosAM < configDia.maxTurnosAM,
-      PM: turnosPM < configDia.maxTurnosPM,
+      AM: amDisponible,
+      PM: pmDisponible,
     };
   };
 
@@ -134,8 +149,6 @@ export default function DatePickerWithBlocksStudent({
     else setInternalSelected(resultado);
   };
 
-  
-
   // Normalizar fechas bloqueadas
   const blockedNormalized = useMemo(
     () =>
@@ -156,7 +169,6 @@ export default function DatePickerWithBlocksStudent({
   // 🚀 **BLOQUEOS PRINCIPALES** (INTEGRADOS)
   // ===============================
   // Llamamos siempre al hook para mantener el orden de los Hooks (pasamos null si no hay calendarioId)
-  
 
   if (!calendarioId) return <p>Cargando datos del usuario…</p>;
 
@@ -174,12 +186,15 @@ export default function DatePickerWithBlocksStudent({
       return true;
 
     // Bloqueo: max turnos alcanzados (global)
+
+    //Total de turnos que puede hacer ese estudiante segun su consultorio
     const limite =
       LimitesTurnos?.find(
         (l) =>
           l.consultorioId === consultorioId && l.calendarioId === calendarioId,
       )?.limiteTurnos || Infinity;
 
+    //Total de turnos registrados del estudiante
     const totalTurnos =
       Turnos?.filter(
         (t) => t.usuarioId === usuarioId && t.calendarioId === calendarioId,
@@ -187,15 +202,28 @@ export default function DatePickerWithBlocksStudent({
 
     if (limite <= totalTurnos) return true;
 
+    const turnosDia =
+      Turnos?.filter(
+        (t) =>
+          t.usuarioId === usuarioId &&
+          t.calendarioId === calendarioId &&
+          formatearFecha(t.fecha) === formatearFecha(day),
+      ).length || 0;
+
+    if (turnosDia > 1) return true;
+
     // Bloqueo: usuario ya tiene turno en este día
+    /** 
     const tieneTurnoElUsuario = Turnos?.some(
       (t) =>
         t.usuarioId === usuarioId &&
         t.calendarioId === calendarioId &&
         formatearFecha(t.fecha) === formatearFecha(day),
     );
-
     if (tieneTurnoElUsuario) return true;
+  */
+
+    //Bloquear si estan todos los turnos completos para ese dia
 
     // Bloqueo: max turnos alcanzado por día (AM/PM) basado en jornadaSeleccionada
     const diaSemanaMinuscula = day
@@ -296,7 +324,8 @@ export default function DatePickerWithBlocksStudent({
     today: "border-none rounded-xl",
   };
 
-  if (!calendario || !festivo || !DiasBloqueo || !informacionCompleta) return <p>Cargando calendario…</p>;
+  if (!calendario || !festivo || !DiasBloqueo || !informacionCompleta)
+    return <p>Cargando calendario…</p>;
   return (
     <div
       className={`xs:p-2 p-0 rounded-2xl shadow-lg border-white border-2 bg-primary flex flex-col xs:max-w-85 max-w-full ${className}`}
