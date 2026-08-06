@@ -7,8 +7,9 @@ import DatePickerWithBlocksStudent from "./CalendarioStudent";
 import { useUsuarioTurno } from "./UsuarioData";
 import { useRouter } from "next/navigation";
 import { postData } from "./FetchPost";
+import AlertModal from "./AlertModal";
 
-export default function RegisterShiftView() {
+export default function () {
   const [selectedDate, setSelectedDate] = useState(undefined);
   const [jornada, setJornada] = useState("");
   const [loading, setLoading] = useState(false);

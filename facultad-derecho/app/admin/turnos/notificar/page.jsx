@@ -113,16 +113,11 @@ export default function TurnosTable() {
     </table>
 
     <p>Saludos cordiales,</p>
-    <p><b>LUZ MARY RINCÓN ROMERO</b><br/>
+    <p><b>NELSON ENRIQUE RUEDA RODRIGUEZ</b><br/>
     Docente con funciones de Coordinación Consultorio Jurídico y Centro de Conciliación - 
-    Sede Universidad Pública en Kennedy<br/>
+    Sede CALLE 34<br/>
     <b>UNIVERSIDAD COLEGIO MAYOR DE CUNDINAMARCA</b><br/>
-    Dir. Calle 6C #94A - 25 - Edificio Nuevo Piso 4, Bogotá D.C - Sede UPK</p>
-
-    <hr style="margin:20px 0; border: 0; border-top: 1px solid #ccc;" />
-    <p style="font-size: 12px; color: #555;">
-      AVISO LEGAL
-    </p>
+    Dir. Dir. Calle 34 No. 6-56, Bogotá D.C.</p>
   `,
       };
 

@@ -97,7 +97,7 @@ export default function TurnoCard() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 uppercase font-bold">Sede</p>
-                  <p className="font-medium text-gray-700">Sede UPK TINTAL</p>
+                  <p className="font-medium text-gray-700">CALLE 34</p>
                 </div>
               </div>
   

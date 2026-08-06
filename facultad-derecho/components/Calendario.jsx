@@ -99,7 +99,7 @@ export default function DatePickerWithBlocks({
         })
         // elimina duplicados
         .filter((v, i, a) => a.findIndex((x) => isSameDay(x, v)) === i),
-    [blockedDates]
+    [blockedDates],
   );
 
   // Función que revisa si una fecha está bloqueada:
@@ -136,12 +136,13 @@ export default function DatePickerWithBlocks({
       if (f.esFestivo && isSameDay(day, parseISO(f.fecha))) return true;
     }
 
-    if(!DiasBloqueo || DiasBloqueo.length === 0){
-      return false
+    if (!DiasBloqueo || DiasBloqueo.length === 0) {
+      return false;
     }
 
-    for(const fecha of DiasBloqueo){
-      if(calendario && isSameDay(day, startOfDay(parseISO(fecha.fecha)))) return true
+    for (const fecha of DiasBloqueo) {
+      if (calendario && isSameDay(day, startOfDay(parseISO(fecha.fecha))))
+        return true;
     }
 
     return false;
@@ -151,7 +152,7 @@ export default function DatePickerWithBlocks({
   const modifiers = { blocked: blockedNormalized }; // usados para estilos
   const modifiersClassNames = {
     blocked: "bg-red-100 text-red-800 line-through",
-    selected: "bg-green-600 rounded-xl text-white",
+    selected: "bg-primary rounded-xl text-white",
     today: "border-none rounded-xl",
     left: "black",
   };
@@ -172,23 +173,19 @@ export default function DatePickerWithBlocks({
   };
 
   return (
-    <div
-      className={`xs:p-2 p-0 rounded-2xl shadow-lg border-white border-2 bg-primary flex flex-col xs:max-w-85 max-w-full ${className} uppercase`}
-    >
-      <DayPicker
-        locale={es}
-        mode={mode}
-        className={"m-auto max-w-80 xs:p-2 text-white bg-primary"}
-        selected={selectedValue}
-        onSelect={handleSelect}
-        navLayout="around"
-        // disabled acepta matchers — aquí usamos función matcher
-        disabled={isBlocked}
-        modifiers={modifiers}
-        modifiersClassNames={modifiersClassNames}
-        month={mesVisible}
-        onMonthChange={handleMonthChange}
-      />
-    </div>
+    <DayPicker
+      locale={es}
+      mode={mode}
+      className={"w-75 m-auto"}
+      selected={selectedValue}
+      onSelect={handleSelect}
+      navLayout="around"
+      // disabled acepta matchers — aquí usamos función matcher
+      disabled={isBlocked}
+      modifiers={modifiers}
+      month={mesVisible}
+      modifiersClassNames={modifiersClassNames}
+      onMonthChange={handleMonthChange}
+    />
   );
 }
