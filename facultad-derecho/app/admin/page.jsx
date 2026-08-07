@@ -5,7 +5,6 @@ import useFetchData from "@/components/FetchData";
 import { postData } from "@/components/FetchPost";
 export const runtime = "edge";
 
-// --- Optional shared UI libs (available in this environment) ---
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -24,26 +23,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import {
   CalendarDays,
   Building2,
-  Gavel,
   AlarmClock,
   CheckCircle2,
   AlertTriangle,
   ChevronRight,
   Info,
 } from "lucide-react";
-
-// --- Project helpers (replace with your real hooks/services) ---
-// If you already have these in your project, keep your originals and remove the mocks.
-// import useFetchData from "@/components/FetchData";
-// import { postData } from "@/components/FetchPost";
-
-// Mocked service (delete if you have real endpoints)
 
 export default function CalendarioAbogadasUI() {
   // ======= STATE =======
@@ -208,7 +198,7 @@ export default function CalendarioAbogadasUI() {
         !d.DiaSemana ||
         d.MaxTurnosAM < 0 ||
         d.MaxTurnosPM < 0 ||
-        (!esConciliacion && !d.MaxTurnosAM && !d.MaxTurnosPM) // 👈 solo exigir en los demás días
+        (!esConciliacion && !d.MaxTurnosAM && !d.MaxTurnosPM)
       ) {
         setErrorMensaje(
           "Cada día debe tener un nombre y al menos 1 turno total en AM o PM (excepto el día de conciliación).",
@@ -281,8 +271,6 @@ export default function CalendarioAbogadasUI() {
     return new Date(year, month - 1, day);
   };
 
-
-
   // ======= FERIADOS =======
   useEffect(() => {
     const obtenerFestivos = async () => {
@@ -298,7 +286,6 @@ export default function CalendarioAbogadasUI() {
       const idxConciliacion = diasSemana.indexOf(diaConciliacion);
       const filtrados = festivos.filter((f) => {
         const fDate = parseFechaLocal(f.date);
-
 
         return (
           fDate >= inicio &&
@@ -323,15 +310,13 @@ export default function CalendarioAbogadasUI() {
         FormularioCalendarios,
       );
 
-      console.log(respuesta)
+      console.log(respuesta);
       if (!respuesta) {
         setErrorMensaje(respuesta?.message || "Error al guardar los datos");
         setSubmitting(false);
         return;
       }
       setSubmitting(false);
-      // Success UI feedback is below; in your app you can redirect:
-      // router.push("/admin/calendarios-creados");
       alert("Calendario guardado correctamente");
       router.push("/admin/calendarios-creados");
     } catch (err) {
@@ -351,33 +336,29 @@ export default function CalendarioAbogadasUI() {
   }, [semestre, rangoEvento, diaConciliacion, totalTurnosSemana]);
 
   // ======= UI =======
-
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 to-white rounded-2xl">
-      {/* Top Bar */}
-
-      <main className="mx-auto max-w-full px-4 py-8 grid gap-6 lg:grid-cols-3">
+    <div className="relative z-0 min-h-screen w-full overflow-x-hidden bg-gradient-to-b from-slate-50 to-white rounded-2xl">
+      <main className="mx-auto w-full max-w-7xl px-3 sm:px-6 py-4 sm:py-8 grid gap-6 grid-cols-1 lg:grid-cols-3">
         {/* Left Column: Form */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CalendarDays className="h-5 w-5" /> Configuración del
-                calendario
+        <div className="lg:col-span-2 space-y-6 min-w-0">
+          <Card className="shadow-sm border border-slate-200/80">
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <CalendarDays className="h-5 w-5 shrink-0" /> Configuración del calendario
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-3">
+            <CardContent className="p-4 sm:p-6 pt-0 space-y-6">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {/* Semestre */}
-                <div className="col-span-3 md:col-span-1">
+                <div className="col-span-1 sm:col-span-2 lg:col-span-1">
                   <Label>
                     Semestre del año<span className="text-red-600">*</span>
                   </Label>
                   <Select value={semestre} onValueChange={setSemestre}>
-                    <SelectTrigger className="mt-1">
+                    <SelectTrigger className="mt-1 w-full">
                       <SelectValue placeholder="Seleccione semestre" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-50">
                       {semestreOptions.map((op) => (
                         <SelectItem key={op.value} value={op.value}>
                           {op.label}
@@ -396,7 +377,7 @@ export default function CalendarioAbogadasUI() {
                     name="inicio"
                     value={rangoEvento.inicio}
                     onChange={handleRangoChange}
-                    className="mt-1"
+                    className="mt-1 w-full"
                   />
                 </div>
                 {/* Fin */}
@@ -409,12 +390,12 @@ export default function CalendarioAbogadasUI() {
                     name="fin"
                     value={rangoEvento.fin}
                     onChange={handleRangoChange}
-                    className="mt-1"
+                    className="mt-1 w-full"
                   />
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                 {/* Día de conciliación */}
                 <div>
                   <Label>
@@ -424,10 +405,10 @@ export default function CalendarioAbogadasUI() {
                     value={diaConciliacion}
                     onValueChange={setDiaConciliacion}
                   >
-                    <SelectTrigger className="mt-1">
+                    <SelectTrigger className="mt-1 w-full">
                       <SelectValue placeholder="Seleccione un día laboral" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-50">
                       {diasSemana.map((d) => (
                         <SelectItem key={d} value={d}>
                           {d}
@@ -447,43 +428,44 @@ export default function CalendarioAbogadasUI() {
                 </div>
               </div>
 
-              <Tabs defaultValue="dias">
+              <Tabs defaultValue="dias" className="w-full">
                 <TabsList className="grid grid-cols-2 w-full">
-                  <TabsTrigger value="dias">
-                    Días laborales<span className="text-red-600">*</span>
+                  <TabsTrigger value="dias" className="text-xs sm:text-sm px-2 sm:px-4">
+                    Días laborales<span className="text-red-600 ml-0.5">*</span>
                   </TabsTrigger>
-                  <TabsTrigger value="consultorios">
-                    Consultorios<span className="text-red-600">*</span>
+                  <TabsTrigger value="consultorios" className="text-xs sm:text-sm px-2 sm:px-4">
+                    Consultorios<span className="text-red-600 ml-0.5">*</span>
                   </TabsTrigger>
                 </TabsList>
+
                 {/* DÍAS */}
-                <TabsContent value="dias" className="space-y-4">
+                <TabsContent value="dias" className="space-y-4 mt-4">
                   <Alert className="bg-amber-50 border-amber-200">
-                    <Info className="h-4 w-4" />
+                    <Info className="h-4 w-4 shrink-0" />
                     <AlertTitle>Configura los turnos por día</AlertTitle>
-                    <AlertDescription>
+                    <AlertDescription className="text-xs sm:text-sm">
                       Los turnos del día de conciliación (
                       <b>{diaConciliacion || "no seleccionado"}</b>) no se
                       contabilizan para la atención.
                     </AlertDescription>
                   </Alert>
 
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                     {configDias
-                      .filter((d) => d.dia !== diaConciliacion || d.dia !== "N/A")
-                      .map((dia) =>(
+                      .filter((d) => d.dia !== diaConciliacion && d.dia !== "N/A")
+                      .map((dia) => (
                         <Card
                           key={dia.dia}
                           className="shadow-none border-dashed"
                         >
-                          <CardHeader className="pb-2">
+                          <CardHeader className="p-3 pb-1">
                             <CardTitle className="text-base font-semibold tracking-tight">
                               {dia.dia}
                             </CardTitle>
                           </CardHeader>
-                          <CardContent className="space-y-3">
+                          <CardContent className="p-3 pt-1 space-y-3">
                             <div>
-                              <Label>Turnos AM</Label>
+                              <Label className="text-xs">Turnos AM</Label>
                               <Input
                                 type="number"
                                 min={0}
@@ -496,11 +478,11 @@ export default function CalendarioAbogadasUI() {
                                     e.target.value,
                                   )
                                 }
-                                className="mt-1"
+                                className="mt-1 h-9"
                               />
                             </div>
                             <div>
-                              <Label>Turnos PM</Label>
+                              <Label className="text-xs">Turnos PM</Label>
                               <Input
                                 type="number"
                                 min={0}
@@ -513,7 +495,7 @@ export default function CalendarioAbogadasUI() {
                                     e.target.value,
                                   )
                                 }
-                                className="mt-1"
+                                className="mt-1 h-9"
                               />
                             </div>
                           </CardContent>
@@ -523,7 +505,7 @@ export default function CalendarioAbogadasUI() {
                 </TabsContent>
 
                 {/* CONSULTORIOS */}
-                <TabsContent value="consultorios" className="space-y-3">
+                <TabsContent value="consultorios" className="space-y-3 mt-4">
                   {loadingConsultorios ? (
                     <p className="text-sm text-slate-500">
                       Cargando consultorios…
@@ -533,15 +515,15 @@ export default function CalendarioAbogadasUI() {
                       {consultorios.map((c) => (
                         <div
                           key={c.id}
-                          className="grid gap-3 md:grid-cols-[1fr,auto] items-center rounded-2xl border p-3"
+                          className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center rounded-2xl border p-3"
                         >
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 grid place-items-center rounded-xl bg-slate-100">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="h-9 w-9 shrink-0 grid place-items-center rounded-xl bg-slate-100">
                               <Building2 className="h-5 w-5 text-slate-600" />
                             </div>
-                            <Input readOnly value={c.nombre} />
+                            <Input readOnly value={c.nombre} className="truncate" />
                           </div>
-                          <div className="flex items-center gap-2 justify-end">
+                          <div className="flex items-center gap-2 justify-end shrink-0">
                             <Label className="text-sm">Turnos</Label>
                             <Input
                               type="number"
@@ -567,24 +549,24 @@ export default function CalendarioAbogadasUI() {
 
               {errorMensaje && (
                 <Alert variant="destructive">
-                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
                   <AlertTitle>Error</AlertTitle>
                   <AlertDescription>{errorMensaje}</AlertDescription>
                 </Alert>
               )}
             </CardContent>
-            <CardFooter className="flex justify-end gap-2">
+            <CardFooter className="p-4 sm:p-6 flex flex-col-reverse sm:flex-row justify-end gap-2 border-t border-slate-100">
               <Button
                 variant="outline"
                 onClick={() => window.location.reload()}
-                className="rounded-xl"
+                className="rounded-xl w-full sm:w-auto"
               >
                 Limpiar
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={!isFormularioValido || submitting}
-                className="rounded-xl"
+                className="rounded-xl w-full sm:w-auto"
               >
                 {submitting ? "Guardando…" : "Generar calendario"}
                 <ChevronRight className="ml-1 h-4 w-4" />
@@ -594,36 +576,36 @@ export default function CalendarioAbogadasUI() {
         </div>
 
         {/* Right Column: Summary */}
-        <div className="space-y-6">
-          <Card className="shadow-sm w-full">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlarmClock className="h-5 w-5" /> Resumen
+        <div className="lg:col-span-1 space-y-6 min-w-0">
+          <Card className="shadow-sm w-full border border-slate-200/80">
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <AlarmClock className="h-5 w-5 shrink-0" /> Resumen
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl border p-3">
+            <CardContent className="p-4 sm:p-6 pt-0 space-y-4">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                <div className="rounded-xl border p-2.5 sm:p-3">
                   <p className="text-xs text-slate-500">Semanas</p>
-                  <p className="text-2xl font-semibold">{totalSemanas}</p>
+                  <p className="text-xl sm:text-2xl font-semibold">{totalSemanas}</p>
                 </div>
-                <div className="rounded-xl border p-3">
+                <div className="rounded-xl border p-2.5 sm:p-3">
                   <p className="text-xs text-slate-500">Festivos</p>
-                  <p className="text-2xl font-semibold">{totalFestivos}</p>
+                  <p className="text-xl sm:text-2xl font-semibold">{totalFestivos}</p>
                 </div>
-                <div className="rounded-xl border p-3">
+                <div className="rounded-xl border p-2.5 sm:p-3">
                   <p className="text-xs text-slate-500">Turnos/semana</p>
-                  <p className="text-2xl font-semibold">{totalTurnosSemana}</p>
+                  <p className="text-xl sm:text-2xl font-semibold">{totalTurnosSemana}</p>
                 </div>
-                <div className="rounded-xl border p-3">
+                <div className="rounded-xl border p-2.5 sm:p-3">
                   <p className="text-xs text-slate-500">Turnos totales</p>
-                  <p className="text-2xl font-semibold">{totalTurnosReales}</p>
+                  <p className="text-xl sm:text-2xl font-semibold">{totalTurnosReales}</p>
                 </div>
               </div>
 
               <div className="space-y-1">
                 <p className="text-xs text-slate-500">Rango seleccionado</p>
-                <p className="font-medium tracking-tight">
+                <p className="font-medium tracking-tight text-xs sm:text-sm truncate">
                   {rangoEvento.inicio || "—"}{" "}
                   <span className="text-slate-400">→</span>{" "}
                   {rangoEvento.fin || "—"}
@@ -632,21 +614,21 @@ export default function CalendarioAbogadasUI() {
 
               <div className="space-y-1">
                 <p className="text-xs text-slate-500">Día de conciliación</p>
-                <p className="font-medium tracking-tight">
+                <p className="font-medium tracking-tight text-xs sm:text-sm">
                   {diaConciliacion || "—"}
                 </p>
               </div>
 
               <div className="pt-2">
-                <div className="flex items-center gap-2 text-sm text-slate-600">
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-600">
                   {isFormularioValido ? (
                     <>
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
                       Listo para generar
                     </>
                   ) : (
                     <>
-                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
                       Completa los campos requeridos
                     </>
                   )}
@@ -656,13 +638,6 @@ export default function CalendarioAbogadasUI() {
           </Card>
         </div>
       </main>
-
-      <footer className="border-t bg-white/80">
-        <div className="mx-auto max-w-7xl px-4 py-4 text-sm text-slate-500 flex items-center justify-between">
-          <span>© {new Date().getFullYear()} Estudio de Abogadas</span>
-          <span>Calendarios & Gestión de turnos</span>
-        </div>
-      </footer>
     </div>
   );
 }

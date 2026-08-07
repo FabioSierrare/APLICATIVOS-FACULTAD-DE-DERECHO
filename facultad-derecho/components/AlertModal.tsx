@@ -39,10 +39,10 @@ export default function AlertModal({
     },
     success: {
       icon: Check,
-      iconColor: "text-emerald-600",
-      bgColor: "bg-emerald-50",
-      borderColor: "border-emerald-100",
-      btnBg: "bg-emerald-600 hover:bg-emerald-700 text-white",
+      iconColor: "text-primary",
+      bgColor: "bg-primary/10",
+      borderColor: "border-primary/20",
+      btnBg: "bg-primary hover:bg-primary/90 text-white",
     },
     warning: {
       icon: AlertTriangle,

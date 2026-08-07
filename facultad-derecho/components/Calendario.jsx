@@ -176,7 +176,7 @@ export default function DatePickerWithBlocks({
     <DayPicker
       locale={es}
       mode={mode}
-      className={"w-75 m-auto"}
+      className={"w-75"}
       selected={selectedValue}
       onSelect={handleSelect}
       navLayout="around"

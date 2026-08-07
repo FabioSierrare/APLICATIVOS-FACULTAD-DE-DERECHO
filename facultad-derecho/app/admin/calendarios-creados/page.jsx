@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Calendar, Search, Plus, Edit2, Trash2 } from "lucide-react";
+import { Calendar, Search, Plus, Edit2, Trash2, CalendarDays, ArrowUpDown } from "lucide-react";
 import useFetchData from "@/components/FetchData";
 import { deleteData } from "@/components/Delete";
 import CalendarSkeleton from "@/components/cargando";
@@ -13,7 +13,7 @@ export default function App() {
     "/api/Calendarios/GetCalendarios"
   );
 
-  const router = useRouter()
+  const router = useRouter();
 
   // HOOKS SIEMPRE ARRIBA
   const [calendarios, setCalendarios] = useState([]);
@@ -31,15 +31,11 @@ export default function App() {
 
   // Toggle de estado
   const toggleEstado = async (id) => {
-    // 1. Obtener el item actual
     const item = calendarios.find((x) => x.id === id);
-
     if (!item) return;
 
-    // 2. Calcular el nuevo estado ANTES del setState
     const nuevoEstado = item.estado === "Activo" ? "Desactivado" : "Activo";
 
-    // 3. Enviar a la API
     const enviar = {
       Id: item.id,
       Anio: item.anio,
@@ -51,42 +47,38 @@ export default function App() {
     };
 
     try {
-      const respuesta = await PutData(`/api/Calendarios/PutCalendarios/${enviar.Id}`, enviar)
+      const respuesta = await PutData(`/api/Calendarios/PutCalendarios/${enviar.Id}`, enviar);
 
       if (!respuesta) {
         throw new Error("Error al guardar los datos");
       }
 
-      // 4. Actualizar UI solo cuando la API confirmó
       setCalendarios((prev) =>
         prev.map((item) =>
           item.id === id ? { ...item, estado: nuevoEstado } : item
         )
       );
-
     } catch (error) {
       alert("Ocurrió un error al actualizar el componente");
     }
   };
 
   const Eliminar = async (id) => {
-    
     try {
-      const respuesta = await deleteData(`/api/Calendarios/DeleteCalendarios`, id)
+      const respuesta = await deleteData(`/api/Calendarios/DeleteCalendarios`, id);
       if (!respuesta) {
         throw new Error("Error al eliminar calendario");
       }
 
-      // 4. Actualizar UI solo cuando la API confirmó
-     await fetchData()
+      await fetchData();
     } catch (error) {
       alert("Ocurrió un error al eliminar el calendario");
     }
-  }
+  };
 
   const InfoCalendario = (id) => {
-    router.push(`/admin/calendarios-creados/${id}`)
-  }
+    router.push(`/admin/calendarios-creados/${id}`);
+  };
 
   const filteredData = calendarios.filter(
     (item) =>
@@ -95,141 +87,166 @@ export default function App() {
   ).reverse();
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans p-4 md:p-8">
+    <div className="min-h-screen bg-slate-50/50 text-slate-800 font-sans p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-[#553285] flex items-center gap-2">
-              <Calendar className="w-8 h-8 text-[#FFCE21]" />
-              Gestión de Calendarios
-            </h1>
-            <p className="text-gray-500 mt-1">
-              Administra los periodos y estados de conciliación.
-            </p>
+        
+        {/* ================= HEADER ================= */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 rounded-xl bg-[#553285]/10 text-[#553285] flex items-center justify-center flex-shrink-0">
+              <Calendar className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-extrabold text-[#553285] tracking-tight">
+                Gestión de Calendarios
+              </h1>
+              <p className="text-xs md:text-sm text-slate-500 mt-0.5">
+                Administra los periodos académicos y sus estados de conciliación.
+              </p>
+            </div>
           </div>
 
-          <button onClick={() => router.push("/admin")} className="bg-[#553285] hover:bg-[#45276b] text-white px-4 py-2 rounded-lg shadow-sm flex items-center gap-2 transition-colors font-medium">
+          <button
+            onClick={() => router.push("/admin")}
+            className="bg-[#553285] hover:bg-[#43266b] active:scale-[0.98] text-white px-5 py-2.5 rounded-xl shadow-sm hover:shadow flex items-center justify-center gap-2 transition-all text-sm font-semibold"
+          >
             <Plus className="w-4 h-4" />
-            Nuevo Calendario
+            <span>Nuevo Calendario</span>
           </button>
         </div>
 
-        {/* SEARCH BAR */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+        {/* ================= SEARCH & STATS ================= */}
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="relative w-full md:w-96">
+            <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Buscar por nombre de calendario..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#553285] focus:border-transparent transition-all"
+              placeholder="Buscar por semestre o año..."
+              className="w-full pl-10 pr-4 py-2 bg-slate-50/50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#553285]/20 focus:border-[#553285] transition-all placeholder:text-slate-400"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+
+          <div className="flex items-center space-x-2 text-xs font-semibold text-slate-500 bg-slate-100/70 px-3 py-1.5 rounded-lg self-end md:self-auto">
+            <CalendarDays className="w-4 h-4 text-[#553285]" />
+            <span>Total registros: {filteredData.length}</span>
+          </div>
         </div>
 
-        {/* TABLE */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        {/* ================= TABLA ================= */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Nombre
-                  </th>
-                  <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Fecha Inicio
-                  </th>
-                  <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Fecha Fin
-                  </th>
-                  <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Día Conciliación
-                  </th>
-                  <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">
-                    Estado
-                  </th>
-                  <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
-                    Acciones
-                  </th>
+                <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="px-6 py-4">Nombre / Semestre</th>
+                  <th className="px-6 py-4">Fecha Inicio</th>
+                  <th className="px-6 py-4">Fecha Fin</th>
+                  <th className="px-6 py-4">Día Conciliación</th>
+                  <th className="px-6 py-4 text-center">Estado</th>
+                  <th className="px-6 py-4 text-right">Acciones</th>
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-gray-100">
-                {filteredData.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">
-                        {item.semestre} {item.anio}
-                      </div>
-                    </td>
+              <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
+                {filteredData.length > 0 ? (
+                  filteredData.map((item) => {
+                    const isActivo = item.estado === "Activo";
 
-                    <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
-                      {new Date(item.fechaInicio).toLocaleDateString()}
-                    </td>
-
-                    <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
-                      {new Date(item.fechaFin).toLocaleDateString()}
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FFCE21]/20 text-[#553285] border border-[#FFCE21]/30">
-                        {item.diaConciliacion}
-                      </span>
-                    </td>
-
-                    <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => toggleEstado(item.id)}
-                        className={`relative inline-flex h-6 w-11 cursor-pointer rounded-full transition-colors duration-200 ease-in-out ${
-                          item.estado === "Activo"
-                            ? "bg-[#553285]"
-                            : "bg-gray-300"
-                        }`}
+                    return (
+                      <tr
+                        key={item.id}
+                        className="hover:bg-slate-50/60 transition-colors"
                       >
-                        <span
-                          className={`absolute h-5 w-5 bg-white rounded-full shadow transform transition ${
-                            item.estado === "Activo"
-                              ? "translate-x-5"
-                              : "translate-x-0"
-                          }`}
-                        />
-                      </button>
+                        {/* Nombre */}
+                        <td className="px-6 py-4 font-bold text-slate-900">
+                          {item.semestre} {item.anio}
+                        </td>
 
-                      <div className="mt-1 text-[10px] uppercase text-gray-400">
-                        {item.estado === "Activo" ? "Activo" : "Inactivo"}
-                      </div>
-                    </td>
+                        {/* Fecha Inicio */}
+                        <td className="px-6 py-4 text-slate-600 font-medium whitespace-nowrap">
+                          {new Date(item.fechaInicio).toLocaleDateString()}
+                        </td>
 
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button onClick={() => InfoCalendario(item.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button onClick={() => Eliminar(item.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                        {/* Fecha Fin */}
+                        <td className="px-6 py-4 text-slate-600 font-medium whitespace-nowrap">
+                          {new Date(item.fechaFin).toLocaleDateString()}
+                        </td>
+
+                        {/* Día Conciliación */}
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200/60">
+                            {item.diaConciliacion}
+                          </span>
+                        </td>
+
+                        {/* Toggle Estado */}
+                        <td className="px-6 py-4 text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <button
+                              onClick={() => toggleEstado(item.id)}
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${
+                                isActivo ? "bg-[#553285]" : "bg-slate-300"
+                              }`}
+                            >
+                              <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform duration-200 ${
+                                  isActivo ? "translate-x-6" : "translate-x-1"
+                                }`}
+                              />
+                            </button>
+                            <span
+                              className={`text-[10px] font-bold uppercase ${
+                                isActivo ? "text-[#553285]" : "text-slate-400"
+                              }`}
+                            >
+                              {isActivo ? "Activo" : "Inactivo"}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Acciones */}
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => InfoCalendario(item.id)}
+                              title="Editar / Ver detalle"
+                              className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => Eliminar(item.id)}
+                              title="Eliminar"
+                              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-10 text-center text-slate-400 text-xs">
+                      No se encontraron calendarios registrados.
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
 
           {/* FOOTER */}
-          <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-            <span className="text-sm text-gray-500">
-              Mostrando{" "}
-              <span className="font-medium">{filteredData.length}</span>{" "}
-              resultados
+          <div className="bg-slate-50/60 px-6 py-3.5 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-500 font-medium">
+            <span>
+              Mostrando <strong className="text-slate-800">{filteredData.length}</strong> resultados
             </span>
           </div>
         </div>
+
       </div>
     </div>
   );
